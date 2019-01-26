@@ -7,11 +7,12 @@
 # Purpose:
 # Combine raw data files from multiple autosomal tests into one file.  The
 # combined file may have better coverage than the individual files.  Currently
-# handles AncestryDNA, 23andMe and FTDNA.  The resulting file can be uploaded
+# handles AncestryDNA, 23andMe and FTDNA, MyHeritage, and LivingDNA.
+# It may support others not yet tested.  The resulting file can be uploaded
 # to gedmatch.
 
 # Instructions:
-# Edit the file names below, then run this script in python3.
+# Edit the file names below, then run this script in python2 or python3.
 
 # Edit the data files to be combined.
 # There should be at least two files listed.
