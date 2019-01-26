@@ -41,7 +41,7 @@ geno = {}
 def normalize_result(result):
     if len(result) == 1:
         return result
-    if len(result) <> 2:
+    if len(result) != 2:
         print('BAD RESULT: {}'.format(result))
     if result[0] > result[1]:
         result = result[1] + result[0]
