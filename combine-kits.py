@@ -19,9 +19,9 @@
 # It doesn't matter if the files are extracted or compressed.
 # All data files must be based on build 37.
 INFILES = [
-  '../FamilyFinder/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
-  '../23andMe/genome_C_Treece_v5_Full_20190110124151.zip',
-  '../AncestryDNA/CTreece-AncestryDNA-dna-data-2017-12-13.zip',
+  'test-data/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
+  'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip',
+  'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13.zip',
 #  '../FamilyFinder/37_J_Treece_Chrom_Autoso_20170722.csv.gz',
 #  '../23andMe/genome_J_Treece_v4_Full_20171213100231.zip',
 #  '../AncestryDNA/JTreece-AncestryDNA-dna-data-2017-12-13.zip',
@@ -106,8 +106,8 @@ for f in INFILES:
             for csvf in zf.namelist():
                 if csvf.endswith('.txt') or csvf.endswith('.csv'):
                     break
-            lines = [l for l in zf.open(csvf, 'r').readlines()
-                         if not l.startswith('#')]
+            lines = [l.decode('utf-8') for l in zf.open(csvf, 'r').readlines()
+                         if not l.startswith(b'#')]
     elif f.endswith('.csv') or f.endswith('.txt'):
         lines = [l for l in open(f, 'r').readlines() if not l.startswith('#')]
 
