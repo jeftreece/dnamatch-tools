@@ -17,11 +17,18 @@
 # Edit the data files to be combined.
 # There should be at least two files listed.
 # It doesn't matter if the files are extracted or compressed.
+# In the examples given below, lines starting with '#' are ignored,
+# and these examples are for files residing in a folder called 'test-data'.
 # All data files must be based on build 37.
 INFILES = [
   'test-data/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
   'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip',
   'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13.zip',
+#  'test-data/no-data.csv', # fails, empty file
+#  'test-data/unreadable.csv', # fails, no file permissions
+#  'test-data/badname.csv', # fails, file does not exist
+#  'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13', # fails - no file extension
+#  'test-data/genome_Carl_Treece_v5_Full_20190110124151.txt', # ok - already unzipped
 #  '../FamilyFinder/37_J_Treece_Chrom_Autoso_20170722.csv.gz',
 #  '../23andMe/genome_J_Treece_v4_Full_20171213100231.zip',
 #  '../AncestryDNA/JTreece-AncestryDNA-dna-data-2017-12-13.zip',
@@ -33,6 +40,7 @@ OUTFILE = 'combined-output.csv'
 import zipfile
 import csv
 import gzip
+import errno
 
 # resulting mash-up
 geno = {}
@@ -98,25 +106,43 @@ def normalize_calls(s):
 for f in INFILES:
     if not f:
         continue
-    if f.lower().endswith('.csv.gz'):
-        with gzip.open(f, 'rt') as gf:
-            lines = [l for l in gf.readlines() if not l.startswith('#')]
-    elif f.lower().endswith('.zip'):
-        with zipfile.ZipFile(f) as zf:
-            for csvf in zf.namelist():
-                if csvf.lower().endswith('.txt') or csvf.lower().endswith('.csv'):
-                    break
-            lines = [l.decode('utf-8') for l in zf.open(csvf, 'r').readlines()
-                         if not l.startswith(b'#')]
-    elif f.lower().endswith('.csv') or f.lower().endswith('.txt'):
-        lines = [l for l in open(f, 'r').readlines() if not l.startswith('#')]
-    else:
-        print('Skipping unrecognized file type: {} - use .csv, .txt, or .zip'.format(f))
+    try:
+        if f.lower().endswith('.csv.gz'):
+            with gzip.open(f, 'rt') as gf:
+                lines = [l for l in gf.readlines() if not l.startswith('#')]
+        elif f.lower().endswith('.zip'):
+            with zipfile.ZipFile(f) as zf:
+                for csvf in zf.namelist():
+                    if csvf.lower().endswith('.txt') or csvf.lower().endswith('.csv'):
+                        break
+                lines = [l.decode('utf-8') for l in zf.open(csvf, 'r').readlines()
+                             if not l.startswith(b'#')]
+        elif f.lower().endswith('.csv') or f.lower().endswith('.txt'):
+            lines = [l for l in open(f, 'r').readlines() if not l.startswith('#')]
+        else:
+            print('Skipping unrecognized file type: {} - use .csv, .txt, or .zip'.format(f))
+            continue
+    except IOError as ioe:
+        if ioe.errno == errno.ENOENT:
+            print('Could not find {} - check file name and readability.'.format(f))
+            continue
+        else:
+            print('There may be a problem with {} - did not read it.'.format(f))
+            continue
+    except TypeError:
+        print('There was a problem processing {} - try unzipping it.'.format(f))
+        continue
+    except Exception as e:
+        print('Error {} happend while processing {} - continuing.'.format(e,f))
         continue
 
     # standardize field names and csv flavor
     # handles either rsid,chr,pos,result or rsid,chr,pos,allele1,allele2
-    dialect = csv.Sniffer().sniff(''.join(lines[0:10]))
+    try:
+        dialect = csv.Sniffer().sniff(''.join(lines[0:10]))
+    except:
+        print('{} does not appear to contain csv data - skipping'.format(f))
+        continue
     d = csv.DictReader(lines, dialect=dialect)
     ncols = len(d.fieldnames)
     if ncols not in (4,5):
