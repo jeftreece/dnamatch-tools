@@ -98,18 +98,21 @@ def normalize_calls(s):
 for f in INFILES:
     if not f:
         continue
-    if f.endswith('.csv.gz'):
+    if f.lower().endswith('.csv.gz'):
         with gzip.open(f, 'rt') as gf:
             lines = [l for l in gf.readlines() if not l.startswith('#')]
-    elif f.endswith('.zip'):
+    elif f.lower().endswith('.zip'):
         with zipfile.ZipFile(f) as zf:
             for csvf in zf.namelist():
-                if csvf.endswith('.txt') or csvf.endswith('.csv'):
+                if csvf.lower().endswith('.txt') or csvf.lower().endswith('.csv'):
                     break
             lines = [l.decode('utf-8') for l in zf.open(csvf, 'r').readlines()
                          if not l.startswith(b'#')]
-    elif f.endswith('.csv') or f.endswith('.txt'):
+    elif f.lower().endswith('.csv') or f.lower().endswith('.txt'):
         lines = [l for l in open(f, 'r').readlines() if not l.startswith('#')]
+    else:
+        print('Skipping unrecognized file type: {} - use .csv, .txt, or .zip'.format(f))
+        continue
 
     # standardize field names and csv flavor
     # handles either rsid,chr,pos,result or rsid,chr,pos,allele1,allele2
