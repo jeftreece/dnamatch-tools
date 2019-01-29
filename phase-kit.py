@@ -202,7 +202,7 @@ outkeys.sort(key=lambda x:(chr_order.index(x[0]),int(x[1])))
 
 # write the output as a .csv file
 with open(OUTFILE, 'w') as csvfile:
-    fieldnames = ['child', 'mother', 'father',
+    fieldnames = ['chr', 'pos', 'rsid', 'child', 'mother', 'father',
                       'mother allele', 'father allele',
                       'uninherited mother', 'uninherited father']
     c = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -210,6 +210,9 @@ with open(OUTFILE, 'w') as csvfile:
     for k in outkeys:
         vals = outvals[k]
         c.writerow({'child': childkit[k],
+                        'chr': k[0],
+                        'pos': k[1],
+                        'rsid': rsids[k],
                         'mother': motherkit[k],
                         'father': fatherkit[k],
                         'mother allele': vals[0],
