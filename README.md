@@ -41,3 +41,24 @@ To use the combined file, it can be read into a spreadsheet, manipulated as text
 to a DNA match service such as gedmatch.
 
 **Usage**: refer to comments in the script
+
+## phase-kit.py:
+
+**User story**: I have autosomal DNA results for both of my parents, and
+I want to determine which allele came from which parent so I can do more-precise
+matching and mapping.
+
+**User skill required**: you will need to install python, clone or copy this source code,
+find your data files on the computer, edit the file phase-kit.py, and run it from the command-line.
+
+This script accepts raw data of autosomal tests from a few different autosomal testing companies. The files may be compressed (.zip or .csv.gz) or uncompressed.
+It currently requires a child, mother and father data and does not yet try
+to phase if only one parent is available.
+
+The data files may also be combined kits, produced by combine-kits.py.
+
+For a given location to be phased, both parents must have values at that location. Locations that are missing a parent's data are rejected and not written to the output. Uncertain locations (where it's impossible to determine which parent contributed which allele) are also rejected.
+
+The output is a .csv to be read into a spreadsheet.
+
+**Usage**: refer to comments in the script
