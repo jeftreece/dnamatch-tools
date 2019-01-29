@@ -24,6 +24,7 @@ INFILES = [
   'test-data/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
   'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip',
   'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13.zip',
+#  'test-data/MyHeritage_raw_dna_data.zip',
 #  'test-data/no-data.csv', # fails, empty file
 #  'test-data/unreadable.csv', # fails, no file permissions
 #  'test-data/badname.csv', # fails, file does not exist
@@ -41,6 +42,7 @@ import zipfile
 import csv
 import gzip
 import errno
+import io
 
 # resulting mash-up
 geno = {}
@@ -112,11 +114,14 @@ for f in INFILES:
                 lines = [l for l in gf.readlines() if not l.startswith('#')]
         elif f.lower().endswith('.zip'):
             with zipfile.ZipFile(f) as zf:
-                for csvf in zf.namelist():
+                for info in zf.filelist:
+                    csvf = info.filename
                     if csvf.lower().endswith('.txt') or csvf.lower().endswith('.csv'):
                         break
-                lines = [l.decode('utf-8') for l in zf.open(csvf, 'r').readlines()
-                             if not l.startswith(b'#')]
+                with zf.open(csvf) as fname:
+                    textfile = io.TextIOWrapper(fname, encoding='utf8')
+                    lines = [str(l) for l in textfile.readlines()
+                             if not l.startswith('#')]
         elif f.lower().endswith('.csv') or f.lower().endswith('.txt'):
             lines = [l for l in open(f, 'r').readlines() if not l.startswith('#')]
         else:
@@ -131,9 +136,10 @@ for f in INFILES:
             continue
     except TypeError:
         print('There was a problem processing {} - try unzipping it.'.format(f))
+        # raise
         continue
     except Exception as e:
-        print('Error {} happend while processing {} - continuing.'.format(e,f))
+        print('Error {} happened while processing {} - continuing.'.format(e,f))
         continue
 
     # standardize field names and csv flavor
