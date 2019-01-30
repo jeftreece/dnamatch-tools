@@ -44,6 +44,10 @@ import gzip
 import errno
 import io
 
+# these are used variously to indicate a no-call at the position
+# in the combined kit, we omit these
+NOVALUE = ('--', '00', 'DD', 'II', 'I', 'D', 'DI')
+
 # resulting mash-up
 geno = {}
 
@@ -81,10 +85,9 @@ def normalize_calls(s):
     arr = list(s)
     rsid = arr[0][0]    # RSID names may vary; pick any one RSID name
     results = [r[1] for r in arr]
-    if '--' in results:
-        results.remove('--')
-    if '00' in results:
-        results.remove('00')
+    for noval in NOVALUE:
+        if noval in results:
+            results.remove(noval)
     results.sort()      # 'A' sorts before 'AA'
     try:
         if results[0] * 2 == results[1]:
@@ -95,6 +98,8 @@ def normalize_calls(s):
     # after the above reductions, there's only one distinct value remaining
     if results and results == [results[0]] * len(results):
         return set( [(rsid,results[0])] )
+    elif not results:
+        return set() # everything was a no-call
     return s # fail to unify results
 
 # Loop through data files:
@@ -198,7 +203,8 @@ for f in INFILES:
 # This happens when more than one DNA kit has a call for the same position.
 # The different kits might have different values at those positions.
 mults = 0
-ones = 1
+ones = 0
+nocalls = 0
 outvals = []
 for g in geno:
     # get rid of duplicates
@@ -209,7 +215,11 @@ for g in geno:
     if len(s) > 1:
         mults += 1
         # uncomment if you want to see discarded calls
+        # most discarded calls are currently MT and Y; some could be fixed
         # print(g, s)
+    elif not s:
+        nocalls += 1
+        continue
 
     # everything is fine with this position, so write it to the output
     elif len(s) == 1:
@@ -229,9 +239,12 @@ with open(OUTFILE, 'w') as csvfile:
     c = csv.DictWriter(csvfile, fieldnames=fieldnames)
     c.writeheader()
     for r in outvals:
-        c.writerow({'RSID': r[0], 'CHROMOSOME': r[1],
-                        'POSITION': r[2], 'RESULT': r[3]})
+        if r[3] not in NOVALUE:
+            c.writerow({'RSID': r[0], 'CHROMOSOME': r[1],
+                            'POSITION': r[2], 'RESULT': r[3]})
+        else:
+            nocalls += 1
 
 # summarize the results
-print('Inconsistent calls not written: {}\nCombined calls: {}'.
-          format(mults,ones))
+print('Inconsistent calls not written: {}\nCombined calls: {}\nNo-calls: {}'.
+          format(mults,ones,nocalls))
