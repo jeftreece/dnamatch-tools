@@ -31,6 +31,7 @@ import gzip
 import errno
 import io
 import sys
+import itertools
 
 # data that was read in
 childkit = {}
@@ -153,10 +154,20 @@ undecided = {}
 for kv in childkit:
     try:
         mv = motherkit[kv]
+    except:
+        mv = None
+    try:
         fv = fatherkit[kv]
+    except:
+        fv = None
+
+    # normal case: both mother and father have a value at this position
+    if mv and fv:
         if childkit[kv][0] == childkit[kv][1]:
             homo = True
+            letter = childkit[kv][0]
         else:
+            homo = False
             mf = False
             fm = False
             if (childkit[kv][0] in mv) and (childkit[kv][1] in fv):
@@ -166,13 +177,12 @@ for kv in childkit:
             if mf and fm:
                 undecided[kv] = childkit[kv]
         if homo:
-            mremainder = mv.replace(childkit[kv][0], '', 1)
-            fremainder = fv.replace(childkit[kv][0], '', 1)
+            mremainder = mv.replace(letter, '', 1)
+            fremainder = fv.replace(letter, '', 1)
             if len(mremainder) != 1 or len(fremainder) != 1:
                 rejects[kv] = childkit[kv]
             else:
-                outvals[kv] = (childkit[kv][0], childkit[kv][1],
-                    mremainder, fremainder)
+                outvals[kv] = (letter, letter, mremainder, fremainder)
         elif mf:
             outvals[kv] = (childkit[kv][0], childkit[kv][1],
                 mv.replace(childkit[kv][0], '', 1),
@@ -184,10 +194,43 @@ for kv in childkit:
         else:
             rejects[kv] = childkit[kv]
 
-    # didn't find result at this address in mother or father
-    # fixme: in some cases, phasing can be deduced from only one parent
-    except KeyError:
-        rejects[kv] = childkit[kv]
+    # didn't find result at this address in either mother or father
+    else:
+        # We're looking for mother or father values that only work one way for
+        # the child alleles. Cartesian product gives all ways child alleles
+        # could be from a parent alleles. Reduce the product to unique values,
+        # then only matching values fit the bill, and if the set contains more
+        # than one matching value, the result is indeterminate because the
+        # allele contributed could be either one.
+
+        if mv:
+            s = set(itertools.product(childkit[kv], mv))
+            choices = list(filter(lambda x:x[0]==x[1], s))
+            if len(choices) == 1:
+                mother_allele = choices[0][0]
+                father_allele = childkit[kv].replace(mother_allele, '', 1)
+                mother_un = mv.replace(mother_allele, '', 1)
+                father_un = '-'
+                outvals[kv] = (mother_allele, father_allele,
+                                   mother_un, father_un)
+                fatherkit[kv] = '--'
+            else:
+                rejects[kv] = childkit[kv] # can't determine from mother
+        elif fv:
+            s = set(itertools.product(childkit[kv], fv))
+            choices = list(filter(lambda x:x[0]==x[1], s))
+            if len(choices) == 1:
+                father_allele = choices[0][0]
+                mother_allele = childkit[kv].replace(father_allele, '', 1)
+                father_un = fv.replace(father_allele, '', 1)
+                mother_un = '-'
+                outvals[kv] = (mother_allele, father_allele,
+                                   mother_un, father_un)
+                motherkit[kv] = '--'
+            else:
+                rejects[kv] = childkit[kv] # can't determine from father
+        else:
+            rejects[kv] = childkit[kv] # well we tried
 
 
 print('outvals: {}, rejects: {}, undecided: {}, rsids: {}'.format(
@@ -221,4 +264,5 @@ with open(OUTFILE, 'w') as csvfile:
                         'uninherited father': vals[3]})
 
 # summarize the results
-print('phased {} of the child alleles'.format(1.0*len(outvals)/len(childkit)))
+print('phased {:.3f} of the child alleles'.format(
+    1.0*len(outvals)/len(childkit)))
