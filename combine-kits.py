@@ -102,6 +102,19 @@ def normalize_calls(s):
         return set() # everything was a no-call
     return s # fail to unify results
 
+
+# guess the gender of the tester based on chr23 data
+# if there are many heterozygous calls, the kit is probably female
+# input is a list of tuples: (rsid, chromosome, position, alleles)
+def guess_gender(kit):
+    gender = 'F'
+    chr23 = [tup[3] for tup in kit if tup[1] == '23']
+    homocount = len([a for a in chr23 if len(a) == 1 or a[0] == a[1]])
+    if 1.0 * homocount/len(chr23) > .95: # arbitrary magic number
+        gender = 'M'
+    return gender
+
+
 # Loop through data files:
 # To support additional company data files, this loop may need to be tweaked.
 # File types currently handled:
@@ -198,7 +211,6 @@ for f in INFILES:
             geno[kv] = [vv,]
     print('Done with {}; positions now stored: {}'.format(f,len(geno)))
 
-
 # Handle the positions that have more than one value.
 # This happens when more than one DNA kit has a call for the same position.
 # The different kits might have different values at those positions.
@@ -227,6 +239,10 @@ for g in geno:
         outvals.append((list(s)[0][0], g[0], g[1], list(s)[0][1])) # r,c,p,v
         # print(g, s)
 
+# guess the gender of this kit from the data
+gender = guess_gender(outvals)
+print('This kit seems to be {} gender'.format(gender))
+
 # sort the output by chromosome, position
 chr_order = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
     '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23',
@@ -239,9 +255,16 @@ with open(OUTFILE, 'w') as csvfile:
     c = csv.DictWriter(csvfile, fieldnames=fieldnames)
     c.writeheader()
     for r in outvals:
+        alleles = r[3]
+        # for males, output only one letter, for homozygous calls
+        if r[1] == '23' and gender == 'M':
+            if len(alleles) == 2 and alleles[0] != alleles[1]:
+                continue
+            else:
+                alleles = alleles[0]
         if r[3] not in NOVALUE:
             c.writerow({'RSID': r[0], 'CHROMOSOME': r[1],
-                            'POSITION': r[2], 'RESULT': r[3]})
+                            'POSITION': r[2], 'RESULT': alleles})
         else:
             nocalls += 1
 
