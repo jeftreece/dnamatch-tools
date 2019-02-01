@@ -263,8 +263,11 @@ with open(OUTFILE, 'w') as csvfile:
                 continue # genotype error - males do not inherit two X's
             else:
                 alleles = alleles[0] # output, e.g. AA -> A
-        elif chrom == 'Y' and gender == 'F':
-            continue # genotype error, section of Y indistinguishable from X
+        elif chrom == 'Y':
+            if gender == 'F':
+                continue # genotype error, part of Y indistinguishable from X
+            else:
+                alleles = alleles[0] # output, e.g. AA -> A
         elif chrom == 'MT':
             if len(alleles) == 2 and alleles[0] != alleles[1]:
                 continue # genotype error - MT must be only one value
