@@ -62,3 +62,24 @@ For a given location to be phased, both parents must have values at that locatio
 The output is a .csv to be read into a spreadsheet.
 
 **Usage**: refer to comments in the script
+
+
+## extend-kit.py:
+
+**User story**: I have autosomal DNA results for me and both of my parents, and
+I want to utilize their data to fill in new positions in my own kit
+to make my kit better for matching.
+
+**User skill required**: you will need to install python, clone or copy this source code,
+find your data files on the computer, edit the file extend-kit.py, and run it from the command-line.
+
+This script accepts raw data of autosomal tests from a few different autosomal testing companies. The files may be compressed (.zip or .csv.gz) or uncompressed.
+It currently requires a child, mother and father data.
+
+The data files may also be combined kits, produced by combine-kits.py.
+
+For a given location to be deduced for the child, both parents must have values at that location, and both parents must be homozygous at that location. The output consists of the union of the original positions the child had and the additional values that can be determined from the parents.
+
+The output is a .csv to be read into a spreadsheet or uploaded to a matching service such as gedmatch.
+
+**Usage**: refer to comments in the script
