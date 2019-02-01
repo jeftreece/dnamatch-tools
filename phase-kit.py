@@ -23,12 +23,6 @@ MOTHERFILE = 'mother.zip'
 FATHERFILE = 'genome-father.csv.gz'
 OUTFILE = 'phased-output.csv'
 
-CHILDFILE = 'test-data/genome_Jef_Treece_v4_Full_20170201071705.zip'
-CHILDFILE = 'combined-jef.csv'
-MOTHERFILE = 'test-data/genome_Margaret_Treece_v5_Full_20190128080840.zip'
-MOTHERFILE = 'combined-margaret.csv'
-FATHERFILE = 'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip'
-FATHERFILE = 'combined-carl.csv'
 #--- adjust file names above this line, then run ---
 
 import zipfile
@@ -288,8 +282,7 @@ with open(OUTFILE, 'w') as csvfile:
     c.writeheader()
     for k in outkeys:
         vals = outvals[k]
-        mothera = fathera = '-'
-        motherv = fatherv = '-'
+        mothera = fathera = motherv = fatherv = '-'
         try:
             mothera = vals[0]
         except:
@@ -308,18 +301,11 @@ with open(OUTFILE, 'w') as csvfile:
             pass
         chrom = k[0]
         if (chrom == '23' and gender == 'M') or chrom == 'MT':
-            fathera = '-' # didn't come from father
-        else:
-            try:
-                fatherv = fatherkit[k]
-            except:
-                pass # no father alleles in data set
+            fathera = '-' # allele didn't come from father, even if data
         if chrom == 'Y':
             fatherv = fathera = childkit[k] # father's must be child's
         elif chrom == 'MT':
-            motherv = mothera = childkit[k] # child has call but mother doesn't
-        else:
-            motherv = motherkit[k]
+            motherv = mothera = childkit[k] # mother's must be child's
         c.writerow({'child': childkit[k],
                         'chr': chrom,
                         'pos': k[1],
