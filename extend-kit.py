@@ -21,10 +21,10 @@
 # Edit the location of the three data files here.
 # It doesn't matter if the files are extracted or compressed.
 # All data files must be based on build 37.
-CHILDFILE = 'combined-jef.csv'
-MOTHERFILE = 'combined-margaret.csv'
-FATHERFILE = 'combined-carl.csv'
-OUTFILE = 'extended-jef.csv'
+CHILDFILE = 'combined-me.csv'
+MOTHERFILE = 'combined-mom.csv'
+FATHERFILE = 'combined-dad.csv'
+OUTFILE = 'extended-me.csv'
 
 #--- adjust file names above this line, then run ---
 
@@ -38,7 +38,7 @@ import itertools
 
 # these are used variously to indicate a no-call at the position
 # in the combined kit, we omit these
-NOVALUE = ('--', '00', 'DD', 'II', 'I', 'D', 'DI')
+NOVALUE = ('-', '--', '00', 'DD', 'II', 'I', 'D', 'DI')
 
 # data that was read in
 childkit = {}
@@ -59,6 +59,17 @@ def normalize_chr(chrom):
     except KeyError:
         c = chrom
     return c
+
+# guess the gender of the tester based on chr23 data
+# if there are many heterozygous calls, the kit is probably female
+# input is a dictionary, key=(chr,pos) and val=alleles
+def guess_gender(kit):
+    gender = 'F'
+    chr23 = [kit[k] for k in kit if k[0] == '23']
+    homocount = len([a for a in chr23 if len(a) == 1 or a[0] == a[1]])
+    if 1.0 * homocount/len(chr23) > .95: # arbitrary magic number
+        gender = 'M'
+    return gender
 
 # Read the data files
 # File types currently handled:
@@ -129,11 +140,6 @@ for ff,dd in [(CHILDFILE,childkit), (MOTHERFILE,motherkit),
         d = csv.DictReader(lines, fieldnames=fieldnames, dialect=dialect)
 
     # Process each line of the input file.
-
-    # At each position discovered, add to the set of reads at that same
-    # position. Later, after all files are read, try to reduce the set down to
-    # one read at that position.
-
     for tup in d:
         chrom = normalize_chr(tup['chromosome'])
         kv = (chrom, tup['position'])
@@ -149,11 +155,15 @@ for ff,dd in [(CHILDFILE,childkit), (MOTHERFILE,motherkit),
         try:
             dd[kv] = result[0] + result[1]
         except:
-            dd[kv] = 2*result[0]
+            dd[kv] = result[0]
         rsids[kv] = tup['rsid']
 
     print('Done with {}; positions now stored: {}'.format(ff,len(dd)))
 # just completed the read of all three files
+
+# determine the gender of the child
+gender = guess_gender(childkit)
+print('Child appears to be {} gender'.format(gender))
 
 # go through all values in the mother's kit to see if we can use them
 for kv in motherkit:
@@ -172,25 +182,47 @@ for kv in motherkit:
 
     mv = motherkit[kv]
 
-    # insufficient data we can use
-    chr23 = kv[0] == '23'
-    nchr23 = not chr23
-    if not mv or (mv in NOVALUE) or (nchr23 and ((fv in NOVALUE) or not fv)):
+    # continue if there's insufficient data for us to use at this position
+    try:
+        chrnum = int(kv[0])
+        chr23 = (chrnum == 23)
+    except:
+        chr23 = False
+    # chr23 = (kv[0] == '23')
+    chrY = (kv[0] == 'Y')
+    chrMT = (kv[0] == 'MT')
+    chrAT = not (chr23 or chrY or chrMT)
+    Female = (gender == 'F')
+    if (chr23 or chrMT) and (not mv or (mv in NOVALUE)):
+        continue
+    elif chrY and (Female or (not fv or (fv in NOVALUE))):
+        continue
+    elif chrAT and (not fv or (fv in NOVALUE)):
         continue
 
     # mother is heterozygous - can't figure out child
-    if 2*mv[0] != mv:
+    if len(mv)==2 and (2*mv[0] != mv):
         continue
 
-    # child got mother's chr23 - MALE ONLY
-    if chr23:
-        childkit[kv] = mv
+    # male child got mother's chr23
+    if chr23 and not Female:
+        childkit[kv] = mv[0]
         continue
 
-    # father is heterozygous
+    # male child got father's Y value
+    if chrY and not Female:
+        childkit[kv] = fv[0]
+        continue
+
+    # any child got mother's MT value
+    if chrMT:
+        childkit[kv] = mv[0]
+        continue
+
+    # father is heterozygous - can't figure out child
     if 2*fv[0] != fv:
         continue
-    
+
     # infer child from mother and father
     childkit[kv] = mv[0]+fv[0]
 
