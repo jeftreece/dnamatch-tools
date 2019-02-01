@@ -46,7 +46,7 @@ import io
 
 # these are used variously to indicate a no-call at the position
 # in the combined kit, we omit these
-NOVALUE = ('--', '00', 'DD', 'II', 'I', 'D', 'DI')
+NOVALUE = ('-', '--', '00', 'DD', 'II', 'I', 'D', 'DI')
 
 # resulting mash-up
 geno = {}
@@ -256,14 +256,23 @@ with open(OUTFILE, 'w') as csvfile:
     c.writeheader()
     for r in outvals:
         alleles = r[3]
+        chrom = r[1]
         # for males, output only one letter, for homozygous calls
-        if r[1] == '23' and gender == 'M':
+        if chrom == '23' and gender == 'M':
             if len(alleles) == 2 and alleles[0] != alleles[1]:
-                continue
+                continue # genotype error - males do not inherit two X's
             else:
-                alleles = alleles[0]
-        if r[3] not in NOVALUE:
-            c.writerow({'RSID': r[0], 'CHROMOSOME': r[1],
+                alleles = alleles[0] # output, e.g. AA -> A
+        elif chrom == 'Y' and gender == 'F':
+            continue # genotype error, section of Y indistinguishable from X
+        elif chrom == 'MT':
+            if len(alleles) == 2 and alleles[0] != alleles[1]:
+                continue # genotype error - MT must be only one value
+            else:
+                alleles = alleles[0] # output, e.g. AA -> A
+        # normal case
+        if alleles not in NOVALUE:
+            c.writerow({'RSID': r[0], 'CHROMOSOME': chrom,
                             'POSITION': r[2], 'RESULT': alleles})
         else:
             nocalls += 1
