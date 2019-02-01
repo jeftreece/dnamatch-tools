@@ -23,6 +23,12 @@ MOTHERFILE = 'mother.zip'
 FATHERFILE = 'genome-father.csv.gz'
 OUTFILE = 'phased-output.csv'
 
+CHILDFILE = 'test-data/genome_Jef_Treece_v4_Full_20170201071705.zip'
+CHILDFILE = 'combined-jef.csv'
+MOTHERFILE = 'test-data/genome_Margaret_Treece_v5_Full_20190128080840.zip'
+MOTHERFILE = 'combined-margaret.csv'
+FATHERFILE = 'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip'
+FATHERFILE = 'combined-carl.csv'
 #--- adjust file names above this line, then run ---
 
 import zipfile
@@ -52,6 +58,18 @@ def normalize_chr(chrom):
     except KeyError:
         c = chrom
     return c
+
+# guess the gender of the tester based on chr23 data
+# if there are many heterozygous calls, the kit is probably female
+# input is a dictionary, key=(chr,pos) and val=alleles
+def guess_gender(kit):
+    gender = 'F'
+    chr23 = [kit[k] for k in kit if k[0] == '23']
+    homocount = len([a for a in chr23 if len(a) == 1 or a[0] == a[1]])
+    if 1.0 * homocount/len(chr23) > .95: # arbitrary magic number
+        gender = 'M'
+    return gender
+
 
 # Read the data files
 # File types currently handled:
@@ -123,10 +141,6 @@ for ff,dd in [(CHILDFILE,childkit), (MOTHERFILE,motherkit),
 
     # Process each line of the input file.
 
-    # At each position discovered, add to the set of reads at that same
-    # position. Later, after all files are read, try to reduce the set down to
-    # one read at that position.
-
     for tup in d:
         chrom = normalize_chr(tup['chromosome'])
         kv = (chrom, tup['position'])
@@ -142,16 +156,22 @@ for ff,dd in [(CHILDFILE,childkit), (MOTHERFILE,motherkit),
         try:
             dd[kv] = result[0] + result[1]
         except:
-            dd[kv] = 2*result[0]
+            dd[kv] = result[0]
+
         rsids[kv] = tup['rsid']
 
     print('Done with {}; positions now stored: {}'.format(ff,len(dd)))
 # just completed the read of all three files
 
+# intuit the gender based on data that was read
+gender = guess_gender(childkit)
+
 outvals = {}
 rejects = {}
 undecided = {}
 for kv in childkit:
+    chrom = kv[0]
+    pos = kv[1]
     try:
         mv = motherkit[kv]
     except:
@@ -161,11 +181,27 @@ for kv in childkit:
     except:
         fv = None
 
+    # if chrom=23 and male, it came from mother
+    if mv and gender == 'M' and chrom == '23':
+        outvals[kv] = (childkit[kv][0], '-',
+                           mv.replace(childkit[kv][0], '', 1), '-')
+        continue
+    # Y chrom always came from father, who has nothing left to give
+    elif fv and gender == 'M' and chrom == 'Y':
+        outvals[kv] = ('-', childkit[kv][0], '-', '-')
+        continue
+
+    # mtDNA always inherited from mother, who has nothing left to give
+    elif chrom == 'MT':
+        outvals[kv] = (childkit[kv][0], '-', '-', '-')
+
     # normal case: both mother and father have a value at this position
     if mv and fv:
-        if childkit[kv][0] == childkit[kv][1]:
+        # homozygous
+        if len(childkit[kv]) == 1 or childkit[kv][0] == childkit[kv][1]:
             homo = True
             letter = childkit[kv][0]
+        # father,mother or mother,father, or undecided
         else:
             homo = False
             mf = False
@@ -252,14 +288,46 @@ with open(OUTFILE, 'w') as csvfile:
     c.writeheader()
     for k in outkeys:
         vals = outvals[k]
+        mothera = fathera = '-'
+        motherv = fatherv = '-'
+        try:
+            mothera = vals[0]
+        except:
+            pass
+        try:
+            fathera = vals[1]
+        except:
+            pass
+        try:
+            motherv = motherkit[k]
+        except:
+            pass
+        try:
+            fatherv = fatherkit[k]
+        except:
+            pass
+        chrom = k[0]
+        if (chrom == '23' and gender == 'M') or chrom == 'MT':
+            fathera = '-' # didn't come from father
+        else:
+            try:
+                fatherv = fatherkit[k]
+            except:
+                pass # no father alleles in data set
+        if chrom == 'Y':
+            fatherv = fathera = childkit[k] # father's must be child's
+        elif chrom == 'MT':
+            motherv = mothera = childkit[k] # child has call but mother doesn't
+        else:
+            motherv = motherkit[k]
         c.writerow({'child': childkit[k],
-                        'chr': k[0],
+                        'chr': chrom,
                         'pos': k[1],
                         'rsid': rsids[k],
-                        'mother': motherkit[k],
-                        'father': fatherkit[k],
-                        'mother allele': vals[0],
-                        'father allele': vals[1],
+                        'mother': motherv,
+                        'father': fatherv,
+                        'mother allele': mothera,
+                        'father allele': fathera,
                         'uninherited mother': vals[2],
                         'uninherited father': vals[3]})
 

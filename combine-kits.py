@@ -21,9 +21,18 @@
 # and these examples are for files residing in a folder called 'test-data'.
 # All data files must be based on build 37.
 INFILES = [
-  'test-data/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
-  'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip',
-  'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13.zip',
+#    'test-data/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
+#    'test-data/37_J_Treece_Chrom_Autoso_20170722.csv.gz',
+    'test-data/37_M_Treece_Chrom_Autoso_20170722.csv.gz',
+#    'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip',
+#    'test-data/genome_Jef_Treece_v4_Full_20170201071705.zip',
+    'test-data/genome_Margaret_Treece_v5_Full_20190128080840.zip',
+#    'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13.zip',
+#    'test-data/JefTreece-AncestryDNA-dna-data-2017-12-13.zip',
+    'test-data/MargaretTreece-AncestryDNA-dna-data-2019-01-28.zip',
+#  'test-data/37_C_Treece_Chrom_Autoso_20170722.csv.gz',
+#  'test-data/genome_Carl_Treece_v5_Full_20190110124151.zip',
+#  'test-data/CarlTreece-AncestryDNA-dna-data-2017-12-13.zip',
 #  'test-data/MyHeritage_raw_dna_data.zip',
 #  'test-data/no-data.csv', # fails, empty file
 #  'test-data/unreadable.csv', # fails, no file permissions
@@ -34,7 +43,7 @@ INFILES = [
 #  '../23andMe/genome_J_Treece_v4_Full_20171213100231.zip',
 #  '../AncestryDNA/JTreece-AncestryDNA-dna-data-2017-12-13.zip',
   ]
-OUTFILE = 'combined-output.csv'
+OUTFILE = 'combined-margaret.csv'
 
 #--- adjust file names above this line, then run ---
 
@@ -263,8 +272,11 @@ with open(OUTFILE, 'w') as csvfile:
                 continue # genotype error - males do not inherit two X's
             else:
                 alleles = alleles[0] # output, e.g. AA -> A
-        elif chrom == 'Y' and gender == 'F':
-            continue # genotype error, section of Y indistinguishable from X
+        elif chrom == 'Y':
+            if gender == 'F':
+                continue # genotype error, part of Y indistinguishable from X
+            else:
+                alleles = alleles[0] # output, e.g. AA -> A
         elif chrom == 'MT':
             if len(alleles) == 2 and alleles[0] != alleles[1]:
                 continue # genotype error - MT must be only one value
