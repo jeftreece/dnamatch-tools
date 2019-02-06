@@ -47,10 +47,10 @@ fatherkit = {}
 rsids = {}
 
 # make sure chromosome name is presented consistently
-# sometimes X results present as 'X', '23', or '25' - always use 'X'
+# sometimes X results present as 'X', 'XY', '23', or '25' - always use '23'
 # sometimes MT results present as '26'
 # sometimes Y results present as '24'
-xmap = {'X': '23', '25': '23',
+xmap = {'X': '23', '25': '23', 'XY': '23',
         '26': 'MT',
         '24': 'Y'}
 def normalize_chr(chrom):
@@ -142,6 +142,9 @@ for ff,dd in [(CHILDFILE,childkit), (MOTHERFILE,motherkit),
     # Process each line of the input file.
     for tup in d:
         chrom = normalize_chr(tup['chromosome'])
+        if chrom == '0':
+            print('Skipping {}'.format(tup))
+            continue
         kv = (chrom, tup['position'])
         if ncols==5:
             result = tup['allele1']+tup['allele2']
