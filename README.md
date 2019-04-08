@@ -19,13 +19,22 @@ and locate and manipulate text files on the computer.
 I want to combine all of my data into a single data file that has the best coverage
 possible from the available data for better matching and SNP overlap.
 
+**User story**: as a tester at another company, I want to upload my data file to gedmatch,
+but it's being rejected by gedmatch due to formatting or ordering or something.
+
 **User skill required**: you will need to install python, clone or copy this source code,
 find your data files on the computer, edit the file combine-kits.py, and run it from the command-line.
 
 This script accepts raw data of autosomal tests from a few different autosomal testing companies
 and combines it into one.
 
-The reason for doing this is each testing company gets a slightly different
+Another way to run it is with one kit instead of multiple ones.
+By running it with just one test, certain problems may be fixed in the data.
+In at least one case, the FTDNA data file could not be uploaded, but after
+running this program, the output file uploaded OK. The main thing it "fixed"
+was the chromosome ordering within the file.
+
+The reason for combining kits is each testing company gets a slightly different
 coverage of the DNA, which may also depend on when you tested,
 since occasionally testing companies switch to different testing technology.
 
