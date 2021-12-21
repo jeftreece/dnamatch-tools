@@ -30,9 +30,10 @@ group_sep = '|'
 # possible to save amount of shared cM this way. E.g. if you're logged into kit
 # "A", showing matches in common with "B" and you save_crossmatches, there will
 # be an entry in the spreadsheet showing that "B" matches "C" but without any
-# amount for shared cM.
-# Set this to True or False.
-save_crossmatches = True
+# amount for shared cM. They may not share any DNA in reality. If seeing this
+# list seems useful to you, try setting it to True.
+# This is experimental and may not work if set to True.
+save_crossmatches = False
 
 
 
@@ -88,10 +89,14 @@ with open(htmlfile, 'r') as rawhtml:
         card = soup.find('compare-header')
         user1 = card.find('div', {'class': re.compile('compareUserLeft ')})['title']
         user2 = card.find('div', {'class': re.compile('compareUserRight ')})['title']
-        btn = card.find('div', {'class': re.compile('addEditBtn')})
-        url = (btn.find('a')['href'])
-        id_re = re.compile('http.*guid1=([0-9A-Z-]+).*guid2=([0-9A-Z-]+)')
-        id1, id2 = id_re.match(url).groups()
+        try:
+            btn = card.find('div', {'class': re.compile('addEditBtn')})
+            url = (btn.find('a')['href'])
+            id_re = re.compile('http.*guid1=([0-9A-Z-]+).*guid2=([0-9A-Z-]+)')
+            id1, id2 = id_re.match(url).groups()
+        except:
+            print('Unable to figure out cross-matches')
+            save_crossmatches = False
 
 
     # find all matches on the entire HTML page
@@ -143,7 +148,7 @@ with open(htmlfile, 'r') as rawhtml:
             managed_by = ''
 
         # also save cross match (if in-common-with list)?
-        if id2 and save_crossmatches:
+        if save_crossmatches and id2:
             values = [id2, user2, match_id, match_name, managed_by, '', notesText,
                 group_sep.join(match_groups), match_url]
             outrows.append({fieldnames[i]:values[i] for i in range(len(fieldnames))})
