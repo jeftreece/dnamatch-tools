@@ -137,3 +137,25 @@ Make sure that file matches the file name in the script, or adjust accordingly.
 Next, run the script, and find the output in the .csv file it creates.
 
 Refer to other comments in the script
+
+
+## merge-csv.py:
+
+**User story**: I've pulled a bunch of DNA matches into multiple
+spreadsheets, and I would like to combine those spreadsheets into one
+file, with duplicates removed so I can use the de-duplicated rows as
+input into another program.
+
+**User skill required**: you will need to install python, clone or
+copy this source code, and run it as a python program
+
+This script takes multiple .csv files and combines them into one file
+that has duplicate rows removed.  Each .csv file must have identical
+columns for the merge to take place. Non-identical .csv files are
+ignored.
+
+**Usage**: There are no settings. Run the program with all of the file
+names you want to merge, plus the output file (final filename) on the
+command line.
+
+Example: merge-csv.py a.csv b.csv c.csv out.csv
