@@ -87,8 +87,53 @@ It currently requires a child, mother and father data.
 
 The data files may also be combined kits, produced by combine-kits.py.
 
-For a given location to be deduced for the child, both parents must have values at that location, and both parents must be homozygous at that location. The output consists of the union of the original positions the child had and the additional values that can be determined from the parents.
+For an allele at a given location of a chromosome to be deduced for the child, both parents must have values at that location, and both parents must be homozygous at that location. The output consists of the union of the original positions the child had and the additional values that can be determined from the parents.
 
 The output is a .csv to be read into a spreadsheet or uploaded to a matching service such as gedmatch.
 
 **Usage**: refer to comments in the script
+
+
+## sniff-ancestry.py:
+
+**User story**: As a genealogist using DNA matches, I would like a
+list of my matches from AncestryDNA in a spreadsheet so I can keep
+better track, history and notes.
+
+**User story**: I have AncestryDNA matches that I want to pull out
+into a spreadsheet for match and network analysis with graphviz,
+gephi and other tools, yet I don't see any way to do that from the
+web page platform. Help!
+
+*User story**: I have seen some spreadsheet methods that use
+cut-and-paste of AncestryDNA matches into a spreadsheet with macros
+and formulas, but I would like a programmatic way of generating my
+spreadsheet that I can understand.
+
+**User skill required**: you will need to install python, clone or
+copy this source code, log into your AncestryDNA account, save the web
+page of interest from your AncestryDNA matches (right click...), find
+the file you saved on the computer, edit the file sniff-ancestry.py to
+make sure a few variables are set correctly, and run it from the
+command-line.
+
+This script takes raw web-page data that you can save from your
+browser when looking at your match list, and it parses that data into
+a match list that it saves in a .csv spreadsheet file. This file can
+be opened with LibreOffice or any other spreadsheet that can read a
+.csv file. The file would normally look like "gobly gook" because it's
+not meant to be read by a human. It's meant to be read by a web
+browser.
+
+**Usage**: There are about four settings that can be modified in the script.
+Check those before running.
+
+First, bring up a match list, and scroll down to load as many matches
+as you wish. Then right click on the page and "save page as..." or use
+some other method to capture the page source into a file.
+
+Make sure that file matches the file name in the script, or adjust accordingly.
+
+Next, run the script, and find the output in the .csv file it creates.
+
+Refer to other comments in the script
