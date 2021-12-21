@@ -2,7 +2,7 @@
 
 Open-source tools providing capabilities for your DNA data from various DNA testing companies.
 
-This project provides simple tools for working with various raw DNA files for genetic genealogy.
+This project provides simple tools for working with various raw DNA and match list files for genetic genealogy.
 
 Goals:
 - open source license to promote sharing
