@@ -105,7 +105,7 @@ into a spreadsheet for match and network analysis with graphviz,
 gephi and other tools, yet I don't see any way to do that from the
 web page platform. Help!
 
-*User story**: I have seen some spreadsheet methods that use
+**User story**: I have seen some spreadsheet methods that use
 cut-and-paste of AncestryDNA matches into a spreadsheet with macros
 and formulas, but I would like a programmatic way of generating my
 spreadsheet that I can understand.
