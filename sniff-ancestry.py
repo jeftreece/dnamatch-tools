@@ -40,17 +40,24 @@ save_crossmatches = False
 
 # --- Usually, no changes are needed below this line ---
 
-import csv, os, re, six, sys
+import csv, os, re, sys
 
-# python2 will not work with this script, as likely there is no bs4 package you
-# can get to run. If you have BOTH versions 2.x and 3.x installed, just make
-# sure that you are running python3 for this script, and the bs4 module can be
-# imported.
-if six.PY2:
-    print('This program requires Python 3.x, and you have Python 2.x.')
-    print('Correct this issue by installing Python 3, then re-run.')
-    print('Refer to https://www.python.org/downloads/')
-    sys.exit(1)
+try:
+    import six
+    # python2 will not work with this script, as likely there is no bs4 package
+    # you can get to run. If you have BOTH versions 2.x and 3.x installed, just
+    # make sure that you are running python3 for this script, and the bs4
+    # module can be imported.
+    if six.PY2:
+        print('This program requires Python 3.x, and you have Python 2.x.')
+        print('Correct this issue by installing Python 3, then re-run.')
+        print('Refer to https://www.python.org/downloads/')
+        sys.exit(1)
+except:
+    print('WARNING - could not determine if you are running Python 3')
+    print('This code will probably not work with Python 2')
+    print('Continuing anyway...')
+
 
 # "pip install beautifulsoup4" may be needed (one-time setup), or in some
 # installations, there may be an os package, such as "apt install python-bs4"
