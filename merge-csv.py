@@ -4,7 +4,7 @@
 
 # Python3 is recommended, but it may run under python2
 
-# Author: Jef Treece 2019
+# Author: Jef Treece 2021
 # License: GPLv3. See accompanying LICENSE file.
 # No warranty. You are responsible for your use of this program.
 

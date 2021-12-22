@@ -13,6 +13,7 @@
 # 
 # Copyright 2021 Jef Treece
 # Ok to use and modify for anything, but keep copyright in place
+# See accompanying LICENSE file.
 # Use at your own risk
 
 # --- Things you may want to change ---
