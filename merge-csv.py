@@ -43,8 +43,10 @@ for fname in filenames:
     lines = [l for l in open(fname, 'r').readlines() if not l.startswith('#')]
     try:
         dialect = csv.Sniffer().sniff(''.join(lines))
+	# quote character can be problematic; assume escaped by double-quoting
+        dialect.doublequote=True
     except:
-        print('{} does not appear to contain csv data - aborting'.format(ff))
+        print('{} does not appear to contain csv data - aborting'.format(fname))
         raise
 
     with open(fname,'r') as csvfile:

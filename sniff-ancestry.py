@@ -167,6 +167,8 @@ with open(htmlfile, 'r') as rawhtml:
         outrows.append({fieldnames[i]:values[i] for i in range(len(fieldnames))})
 
 # save the result as a .csv
+# Dialect.quotechar: is '"' by default
+# Dialect.doublequote: true by default, so "Jef" becomes ""Jef""
 with open(tester_csv, 'w') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames)
     writer.writeheader()
