@@ -42,7 +42,7 @@ for fname in filenames:
     # make sure input appears to be .csv file
     lines = [l for l in open(fname, 'r').readlines() if not l.startswith('#')]
     try:
-        dialect = csv.Sniffer().sniff(''.join(lines[0:10]))
+        dialect = csv.Sniffer().sniff(''.join(lines[0:100]))
     except:
         print('{} does not appear to contain csv data - aborting'.format(ff))
         raise
