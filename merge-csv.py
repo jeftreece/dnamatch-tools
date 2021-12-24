@@ -44,7 +44,10 @@ for fname in filenames:
     try:
         dialect = csv.Sniffer().sniff(''.join(lines))
 	# quote character can be problematic; assume escaped by double-quoting
-        dialect.doublequote=True
+        dialect.doublequote = True
+        dialect.quoting = csv.QUOTE_MINIMAL
+        dialect.delimiter = ','
+        dialect.quotechar = '"'
     except:
         print('{} does not appear to contain csv data - aborting'.format(fname))
         raise
@@ -64,7 +67,10 @@ for fname in filenames:
 
         # add row to output if it doesn't already exist
         for row in d:
-            merged_output.add(tuple(row.values()))
+            try:
+                merged_output.add(tuple(row.values()))
+            except:
+                print('failed to add a row: {}'.format(row.values()))
 
 
 # save the result as a .csv
