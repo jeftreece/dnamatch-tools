@@ -18,7 +18,17 @@
 
 # --- Things you may want to change ---
 
-# The output of "save page as..." from AncestryDNA match list
+# The output of "save page as..." from AncestryDNA match list.  Note: if your
+# web browser gives you multiple options for saving the page, use the one that
+# produces a complete .html file. It should be a pretty big file. If that
+# doesn't work, try the other options until you find one that works.
+
+# The file location must match where you stored the file.
+# WINDOWS: you may need a line similar to one of these (without the hash):
+#htmlfile = 'C:/Users/Treece/Desktop/A.html'
+#htmlfile = 'A.html'
+# OTHERS: you may need a line similar to this (without the hash):
+#htmlfile = '/tmp/A.html'
 htmlfile = '/tmp/A.html'
 
 # The output file name
@@ -62,10 +72,13 @@ except:
 # "pip install beautifulsoup4" may be needed (one-time setup), or in some
 # installations, there may be an os package, such as "apt install python-bs4"
 try:
+    import lxml
     from bs4 import BeautifulSoup
 except:
     print('This program requires the Beautiful Soup package.')
-    print('You do not appear to have it installed.')
+    print('It also requires the lxml package.')
+    print('You do not appear to have one of these installed.')
+    print('Command: "pip install lxml", then re-run')
     print('Command: "pip install beautifulsoup4", then re-run')
     print('Refer to https://www.pythonforbeginners.com/beautifulsoup/beautifulsoup-4-python')
     sys.exit(1)
