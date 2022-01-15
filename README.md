@@ -191,8 +191,9 @@ these programs.
 
 **Windows** installation of Python has been covered by so
 many people previously that there's no reason for us to re-invent
-instructions. Watch one of these videos, or simply use your search
+instructions. Watch one of these videos or tutorials, or simply use your search
 engine to find your favorite installation instructions:
+- https://www.tutorialspoint.com/how-to-install-python-in-windows
 - https://www.youtube.com/watch?v=uDbDIhR76H4
 - https://www.youtube.com/watch?v=i-MuSAwgwCU
 - https://www.youtube.com/watch?v=UvcQlPZ8ecA
