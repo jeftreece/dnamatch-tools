@@ -13,6 +13,10 @@ Goals:
 The typical user is expected to be able to find and install python, run run python from the command-line,
 and locate and manipulate text files on the computer.
 
+Notes for one-time setup and other hints can be found at the bottom of
+this README, under **HELP and HINTS**.
+
+
 ## combine-kits.py:
 
 **User story**: as a genetic genalogist who has tested at AncestryDNA, 23andMe and FTDNA,
@@ -115,7 +119,9 @@ copy this source code, log into your AncestryDNA account, save the web
 page of interest from your AncestryDNA matches (right click...), find
 the file you saved on the computer, edit the file sniff-ancestry.py to
 make sure a few variables are set correctly, and run it from the
-command-line.
+command-line. The script requires the package "lxml" and the package
+"beautiful soup", so as a one-time setup, you may need to run the
+commands "pip install lxml" and "pip install beautifulsoup4"
 
 This script takes raw web-page data that you can save from your
 browser when looking at your match list, and it parses that data into
@@ -159,3 +165,43 @@ names you want to merge, plus the output file (final filename) on the
 command line.
 
 Example: merge-csv.py a.csv b.csv c.csv out.csv
+
+
+## HELP and HINTS
+
+Almost everything here will require that you have python
+installed. Python is a free and open source programming language, and
+it's used to run these programs. Don't be afraid! Installation is
+typically very easy. It can be installed on various platforms, so it
+doesn't matter if you're running Windows, Linux, or something else.
+The precise installation instructions may vary a bit between different
+platforms. A few tips to get you started are presented in this help
+section. **Do this once** then afterwards, you will have Python
+installed.
+
+Python has been around for a long time, and there are more than one
+version. Generally, you should **install version 3** (the version
+number begins with 3.) if that is available to you.
+
+Any python installation normally also installs a program called
+"pip". When other software packages are needed here, the normal way to
+do it is by typing the command "pip install <package>". Again, this is
+a one-time step. Once you've done it, you're good to go on runnng
+these programs.
+
+**Windows** installation of Python has been covered by so
+many people previously that there's no reason for us to re-invent
+instructions. Watch one of these videos, or simply use your search
+engine to find your favorite installation instructions:
+- https://www.youtube.com/watch?v=uDbDIhR76H4
+- https://www.youtube.com/watch?v=i-MuSAwgwCU
+- https://www.youtube.com/watch?v=UvcQlPZ8ecA
+
+**Linux** installation of Python varies a bit, depending on which
+distribution of Linux you are running. Use your favorite package
+manager to install it, or use something along the lines of "apt
+install python" if you're using command-line and a Debian-based Linux.
+
+**MacOS and others** installation of Python is not covered here,
+except that we know of success stories, so it can be done. If anyone
+wants to write something about it, we'll include it here.
