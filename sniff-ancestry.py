@@ -182,7 +182,7 @@ with open(htmlfile, 'r') as rawhtml:
 # save the result as a .csv
 # Dialect.quotechar: is '"' by default
 # Dialect.doublequote: true by default, so "Jef" becomes ""Jef""
-with open(tester_csv, 'w') as csvfile:
+with open(tester_csv, 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames)
     writer.writeheader()
     writer.writerows(outrows)
