@@ -218,8 +218,8 @@ Installation of Python is done one-time, before trying to run any
 programs. Along with the installation of Python, you will likely need
 to install a couple of packages. Go ahead and run these commands from
 a command prompt after installing python:
-# pip install lxml
-# pip install beautifulsoup4
+- pip install lxml
+- pip install beautifulsoup4
 
 **Python versions**
 
