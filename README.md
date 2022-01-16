@@ -203,6 +203,34 @@ distribution of Linux you are running. Use your favorite package
 manager to install it, or use something along the lines of "apt
 install python" if you're using command-line and a Debian-based Linux.
 
-**MacOS and others** installation of Python is not covered here,
-except that we know of success stories, so it can be done. If anyone
-wants to write something about it, we'll include it here.
+**MacOS** installation and validation of Python installation is covered here:
+- https://www.youtube.com/watch?v=TgA4ObrowRg
+
+**Other platforms** - no installation instructions are provided
+here. You will need to find the appropriate installation instructions
+for your OS by searching with a search engine, downloading the
+appropriate software and following the instructions. Feel free to
+provide the instructions which can be added to this readme file.
+
+**After installing Python**
+
+Installation of Python is done one-time, before trying to run any
+programs. Along with the installation of Python, you will likely need
+to install a couple of packages. Go ahead and run these commands from
+a command prompt after installing python:
+# pip install lxml
+# pip install beautifulsoup4
+
+**Python versions**
+
+It's possible you have python installed already. In a command window,
+type the command "python --version". If it returns with a version
+number, it means you have python installed. You should also be able to
+see the pip version by running the command "pip --version"
+
+The preferred python version is any number that begins with "3.".
+
+If you have multiple versions of python, and the default is not 3.x,
+you can run specifically the correct versions of python and pip by
+running the commands "python3" and "pip3". You should ensure that
+these are the versions you are running for the programs here.
