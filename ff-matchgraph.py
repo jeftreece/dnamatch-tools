@@ -56,13 +56,28 @@ nodefile = 'ff-nodes.csv'
 # range.
 #example:
 #cm_min = None
-cm_min = 8
-cm_max = 50
+cm_min = 12
+cm_max = 40
 
-# The output database name. You can name it whatever you like.
+# Kit numbers to include in 2d array of shared DNA. For example, you could list
+# kits who match each other on Y DNA and use this to see which ones of them
+# share DNA with the others. Single-column csv file. The first line should be a
+# label but it doesn't matter what the label is - e.g. "Id". If a kit is listed
+# here that is not found in equivs_csv above, it's just ignored.
+array_kits = 'y_matches.csv'
+array_kits = 'y_matches2.csv'
+array_kits = 'y_matches3.csv'
+
+# Output file for array
+array_csv = 'y_array.csv'
+
+# The output database name. You can name it whatever you like. No need to
+# change it unless you don't like the name.
 sqlite_db = 'matches.db'
 
-
+# If database is already built, you can set this to False
+build_db = False
+build_db = True
 
 
 # --- Usually, no changes are needed below this line ---
@@ -89,27 +104,28 @@ def normalize_name(fullname):
 # NB: these are used internally and don't need to be directly accessed
 db = sqlite3.connect(sqlite_db)
 curs = db.cursor()
-try:
-    curs.execute('drop table edges')
-except:
-    pass
-curs.execute('''create table edges (
-   source char references people(rowid),
-   target char references people(rowid),
-   cm float,
-   unique(source, target))''')
-try:
-    curs.execute('drop table people')
-except:
-    pass
-curs.execute('''create table people (
-   name char,
-   kit char default NULL,
-   yhap char,
-   mthap char,
-   unique(kit),
-   unique(name,yhap,mthap))''')
-db.commit()
+if build_db:
+    try:
+        curs.execute('drop table edges')
+    except:
+        pass
+    curs.execute('''create table edges (
+                    source char references people(rowid),
+                    target char references people(rowid),
+                    cm float,
+                    unique(source, target))''')
+    try:
+        curs.execute('drop table people')
+    except:
+        pass
+    curs.execute('''create table people (
+                    name char,
+                    kit char default NULL,
+                    yhap char,
+                    mthap char,
+                    unique(kit),
+                    unique(name,yhap,mthap))''')
+    db.commit()
 
 # FTDNA does not give us a unique identifier for a match. This creates a severe
 # problem. Two distinct people may have an identical full name. Any match in a
@@ -169,11 +185,16 @@ with open (equivs_csv, 'r', encoding='utf-8-sig') as csvfile:
     equivs = csv.DictReader(csvfile)
     for person in equivs:
         try:
-            curs.execute('''insert into people(name,kit,yhap,mthap)
+            if build_db:
+                curs.execute('''insert into people(name,kit,yhap,mthap)
                            values(?,?,?,?)''',
                             (person['name'], person['kit'],
                                 person['y-haplo'], person['mt-haplo']))
-            pid = curs.lastrowid
+                pid = curs.lastrowid
+            else:
+                curs.execute('select rowid from people where name=?',
+                             (person['name'],))
+                pid = curs.fetchone()[0]
         except sqlite3.IntegrityError:
             print('Failed to store {} because they appear twice in {}'.format(
                 person['name'], equivs_csv))
@@ -191,13 +212,18 @@ db.commit()
 fname_re = re.compile(r'([\w]{3,10})_', re.I)
 
 # try to handle every file found in the datadir
-in_files = os.listdir(datadir)
-
+in_files = []
+for root, dirs, files in os.walk(datadir):
+    for fname in files:
+        in_files.append((root,fname))
 
 # walk through all of the files
-for fname in in_files:
+for dirname,fname in in_files:
+    if not build_db:
+        continue
     try:
-        fpath = os.path.join(datadir, fname)
+        owner='?'
+        fpath = os.path.join(dirname, fname)
         owner = fname_re.match(fname).groups()[0]
         owner_id, owner_name = kit_ids[owner]
     except:
@@ -269,3 +295,49 @@ with open(nodefile, 'w', newline='') as csvfile:
     nodecsv.writerow(['Id', 'label', 'kit'])
     for c in curs:
         nodecsv.writerow(c)
+
+
+# walk through array_kits file and output shared cM array
+kitlist = []
+with open (array_kits, 'r', encoding='utf-8-sig') as csvfile:
+    kitcsv = csv.DictReader(csvfile)
+    kitfield = kitcsv.fieldnames[0]
+    print(kitfield)
+    for person in kitcsv:
+        if person[kitfield] not in kit_ids:
+            print('not found: {}'.format(person[kitfield]))
+        else:
+            kitlist.append(person[kitfield])
+    print(kitlist)
+    sq = 'select rowid from people where kit=?'
+    kitids = [curs.execute(sq,(kk,)).fetchone()[0] for kk in kitlist]
+    print(kitids)
+    fieldnames = ','.join(['X'] + kitlist)
+    print(fieldnames)
+    outrows = []
+    for k1 in kitids:
+        rr = [kitlist[kitids.index(k1)]]
+        for k2 in kitids:
+            if k1 == k2:
+                rr.append('X')
+                continue
+            curs.execute('''select cm from edges e
+                            where e.source=? and e.target=?
+                            or e.source=? and e.target=?''',
+                            (k1, k2, k2, k1))
+            cm = curs.fetchone()
+            if cm:
+                rr.append(cm[0])
+            else:
+                rr.append('')
+        outrows.append(rr)
+        print(rr)
+
+print('writing...')
+with open(array_csv, 'w', newline='') as csvfile:
+    arrcsv = csv.writer(csvfile)
+    arrcsv.writerow(['X'] + kitlist)
+    for rr in outrows:
+        arrcsv.writerow(rr)
+
+db.commit()
