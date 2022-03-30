@@ -116,27 +116,43 @@ spreadsheet that I can understand.
 
 **User skill required**: you will need to install python, clone or
 copy this source code, log into your AncestryDNA account, save the web
-page of interest from your AncestryDNA matches (right click...), find
-the file you saved on the computer, edit the file sniff-ancestry.py to
-make sure a few variables are set correctly, and run it from the
-command-line. The script requires the package "lxml" and the package
-"beautiful soup", so as a one-time setup, you may need to run the
-commands "pip install lxml" and "pip install beautifulsoup4"
+page of interest from your AncestryDNA matches (right click, then save
+the full web page as a .html file), find the file you saved on the
+computer, edit the file sniff-ancestry.py to make sure a few variables
+are set correctly, and run it from the command-line. The script
+requires the package "lxml" and the package "beautiful soup", so as a
+one-time setup, you may need to run the commands "pip install lxml"
+and "pip install beautifulsoup4"
 
 This script takes raw web-page data that you can save from your
 browser when looking at your match list, and it parses that data into
 a match list that it saves in a .csv spreadsheet file. This file can
 be opened with LibreOffice or any other spreadsheet that can read a
-.csv file. The file would normally look like "gobly gook" because it's
-not meant to be read by a human. It's meant to be read by a web
-browser.
+.csv file. The html file would normally look like "gobly gook" because
+it's not meant to be read by a human. It's meant to be read by a web
+browser. Sniff-ancestry.py turns it into something usable.
 
 **Usage**: There are about four settings that can be modified in the script.
 Check those before running.
 
 First, bring up a match list, and scroll down to load as many matches
 as you wish. Then right click on the page and "save page as..." or use
-some other method to capture the page source into a file.
+some other method to capture the page source into a file. If you have
+a choice how to save, use the full web page option. It may produce a
+folder with a lot of separate files and a separate .html file with the
+name as you chose in saving it. Ignore the folder. You can remove it
+if you want. You just need the .html file.
+
+NOTE: you probably won't have much success trying to save all of your
+matches in one go. It's recommended that you break up the list into
+manageable sizes, either by filtering on a range of shared DNA or
+filtering on a surname or other criteria. There may be 50,000 or more
+people in the full match list, and if it works at all, it will be very
+slow if you try to do it all at once.
+
+Saving the file can typically be done by a right-click on the web
+page, but the specific instructions may depend on which browser you're
+using. As long as you can save it as a complete .html file, it should work.
 
 Make sure that file matches the file name in the script, or adjust accordingly.
 
