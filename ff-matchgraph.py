@@ -36,28 +36,35 @@ import hashlib, csv, sqlite3, re, os
 # e.g., match lists for all of the kits you manage.
 datadir = 'match-ff-data'
 datadir = 'tempdir'
+datadir = 'tempdir_wall01a'
+datadir = 'tempdir_pittmanA'
+datadir = 'tempdir_pittmanAwall01a'
+datadir = 'tempdir2'
 
 # equivalent names - this should be a spreadsheet mapping kit numbers to names
 # and haplogroups. The kit number should be the FTDNA kit number that is part
 # of the .csv file name as saved by exporting your match list as a .csv
 # file. The name should be the exact string that shows up in the match files
-# for anyone matching that kit. The y-haplo should also be as it shows up on a
-# match list. The four columns should be "kit", "name", "y-haplo",
-# "mt-haplo". You need one line per file in the datadir.
+# for anyone matching that kit. The yhap should also be as it shows up on a
+# match list. The four columns should be "kit", "name", "yhap",
+# "mthap". You need one line per file in the datadir.
 equivs_csv = 'kit_owners.csv'
 equivs_csv = 'kit_owners_2.csv'
+equivs_csv = 'kit_owners_3.csv'
+equivs_csv = 'kit_owners_4.csv'
 
 # final output file names
 edgefile = 'ff-edges.csv'
 nodefile = 'ff-nodes.csv'
 
-# shared DNA range to output: set one or both to None if you don't want a
-# limit; set to a cM range if you want to only consider matches within that
-# range.
+# For creating the edge file above: shared DNA range to output: set one or both
+# to None if you don't want a limit; set to a cM range if you want to only
+# consider matches within that range. Does not affect database creation -
+# matches outside of this range are still stored.
 #example:
 #cm_min = None
-cm_min = 12
-cm_max = 40
+cm_min = 10
+cm_max = 50
 
 # Kit numbers to include in 2d array of shared DNA. For example, you could list
 # kits who match each other on Y DNA and use this to see which ones of them
@@ -67,6 +74,10 @@ cm_max = 40
 array_kits = 'y_matches.csv'
 array_kits = 'y_matches2.csv'
 array_kits = 'y_matches3.csv'
+array_kits = 'y_matches_wall01a.csv'
+array_kits = 'y_matches_pittmanA.csv'
+array_kits = 'y_matches_pittmanAwall01a.csv'
+array_kits = 'y_matches4.csv'
 
 # Output file for array
 array_csv = 'y_array.csv'
@@ -74,11 +85,16 @@ array_csv = 'y_array.csv'
 # The output database name. You can name it whatever you like. No need to
 # change it unless you don't like the name.
 sqlite_db = 'matches.db'
+sqlite_db = 'matches2.db'
+sqlite_db = 'matches3.db'
 
 # If database is already built, you can set this to False
 build_db = False
 build_db = True
 
+# rejected typically because duplicate id within same match file
+# not used - rejects stored in the database
+# rejects_file = 'rejects.out'
 
 # --- Usually, no changes are needed below this line ---
 
@@ -100,6 +116,13 @@ def md5(obj):
 def normalize_name(fullname):
     return re.sub(r'( )\1+', r'\1', fullname)
 
+# return True if file1 is newer than file2 in the root directory
+def newer(rootdir, f1, f2):
+    if os.path.getmtime(os.path.join(rootdir,f1)) > os.path.getmtime(os.path.join(rootdir,f2)):
+        print(f1, 'is newer than', f2)
+        return True
+    return False
+
 # Create the database file for storing results
 # NB: these are used internally and don't need to be directly accessed
 db = sqlite3.connect(sqlite_db)
@@ -110,8 +133,8 @@ if build_db:
     except:
         pass
     curs.execute('''create table edges (
-                    source char references people(rowid),
-                    target char references people(rowid),
+                    source integer references people(rowid),
+                    target integer references people(rowid),
                     cm float,
                     unique(source, target))''')
     try:
@@ -125,6 +148,23 @@ if build_db:
                     mthap char,
                     unique(kit),
                     unique(name,yhap,mthap))''')
+    try:
+        curs.execute('drop table namecounts')
+    except:
+        pass
+    curs.execute('''create table namecounts(
+                    tester integer references people(rowid),
+                    matched integer references people(rowid),
+                    namecount integer)''')
+
+    try:
+        curs.execute('drop table rejects')
+    except:
+        pass
+    curs.execute('''create table rejects(
+                    tester integer references people(rowid),
+                    matched integer references people(rowid),
+                    rejectcount integer)''')
     db.commit()
 
 # FTDNA does not give us a unique identifier for a match. This creates a severe
@@ -189,7 +229,7 @@ with open (equivs_csv, 'r', encoding='utf-8-sig') as csvfile:
                 curs.execute('''insert into people(name,kit,yhap,mthap)
                            values(?,?,?,?)''',
                             (person['name'], person['kit'],
-                                person['y-haplo'], person['mt-haplo']))
+                                person['yhap'], person['mthap']))
                 pid = curs.lastrowid
             else:
                 curs.execute('select rowid from people where name=?',
@@ -205,17 +245,28 @@ with open (equivs_csv, 'r', encoding='utf-8-sig') as csvfile:
         kit_ids[person['kit']] = (pid, person['name'])
 db.commit()
 
-
 # process the match files found in datadir...
 
 # regular expression to determine the kit number from the file name 
 fname_re = re.compile(r'([\w]{3,10})_', re.I)
 
-# try to handle every file found in the datadir
-in_files = []
+# try to handle every file found in the datadir, only keeping newest
+owner_files = {}
 for root, dirs, files in os.walk(datadir):
-    for fname in files:
-        in_files.append((root,fname))
+    for candidate in files:
+        owner = fname_re.match(candidate).groups()[0]
+        if owner in owner_files:
+            # file for this owner already stored
+            fname = owner_files[owner]
+            if newer(root,candidate,fname):
+                # found a newer file for this owner
+                owner_files[owner] = candidate
+        else:
+            # first file found for this candidate
+            owner_files[owner] = candidate
+
+# a list of the newest file for each tester
+in_files = [(root, owner_files[ff]) for ff in owner_files]
 
 # walk through all of the files
 for dirname,fname in in_files:
@@ -228,7 +279,7 @@ for dirname,fname in in_files:
         owner_id, owner_name = kit_ids[owner]
     except:
         print('Not processing {} because owner {} is not in {}'.format(
-            fname, owner, equivs_csv))
+              fname, owner, equivs_csv))
         continue
     try:
         # process lines (matches) in the file
@@ -236,31 +287,62 @@ for dirname,fname in in_files:
         with open (fpath, 'r', encoding='utf-8-sig') as csvfile:
             matches = csv.DictReader(csvfile)
             tuples = []
-            nodes = []
+            people = set()
+            rejects = set()
+            names = {}
             for match in matches:
                 name = normalize_name(match['Full Name'])
                 shared_dna = match['Shared DNA']
                 yhap = match['Y-DNA Haplogroup']
                 mthap = match['mtDNA Haplogroup']
-                pid = None
+
+                # person "unique" identifier: name, yhap, mthap
+                personID = (name,yhap,mthap)
                 try:
                     curs.execute('''insert into people(name,yhap,mthap)
-                                 values(?,?,?)''', (name,yhap,mthap))
+                                 values(?,?,?)''', personID)
                     pid = curs.lastrowid
                 except sqlite3.IntegrityError:
                     curs.execute('''select rowid from people
                                   where name=? and yhap=? and mthap=?''',
-                                     (name,yhap,mthap))
+                                     personID)
                     pid = curs.fetchone()[0]
                 if not pid:
                     print('Failed to store match: {} and {}'.format(owner_name,
                                                                         name))
                     continue
+
+                # count number of times a given name occurs within matches
+                if pid in names:
+                    names[pid] += 1
+                else:
+                    names[pid] = 1
+
+                # did we already encounter match with same name and haplo?
+                if names[pid] > 1:
+                    rejects.add(pid)
+                    # print('rejecting duplicate person', personID)
+                    continue
+
+                # remember that we processed someone with this ID already
+                people.add(pid)
+
                 # source,target sorted so there are no duplicates stored
-                # this strategy means graph is not directed
+                # any graph of these nodes is not directed
                 edges = sorted([owner_id, pid])
                 tuples.append((edges[0], edges[1], shared_dna))
-            curs.executemany('insert or ignore into edges values(?,?,?)',
+
+            if names:
+                curs.executemany('insert into namecounts values(?,?,?)',
+                                [((owner_id,) + tt) for tt in names.items()])
+
+            # TBD: insert actual count rather than 1
+            if rejects:
+                curs.executemany('insert into rejects values(?,?,?)',
+                                [((owner_id, pp, 1)) for pp in rejects])
+
+            if tuples:
+                curs.executemany('insert or ignore into edges values(?,?,?)',
                                  tuples)
             db.commit()
 
@@ -268,6 +350,11 @@ for dirname,fname in in_files:
         print('Did not process file {}'.format(fname))
         raise
 
+if False:
+    with open(rejects_file, 'w') as fp:
+        for thingy in rejects:
+            fp.write(repr(thingy)+'\n')
+    
 
 # only output edges within range of cM specified
 if cm_min and cm_max:
