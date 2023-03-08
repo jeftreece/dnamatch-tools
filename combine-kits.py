@@ -44,8 +44,8 @@ import gzip
 import errno
 import io
 
-# these are used variously to indicate a no-call at the position
-# in the combined kit, we omit these
+# These are used variously to indicate no allele called at the position.
+# In the combined kit, we omit these. See also https://learn.familytreedna.com/autosomal-ancestry/universal-dna-matching/read-family-finder-raw-data-file/
 NOVALUE = ('-', '--', '00', 'DD', 'II', 'I', 'D', 'DI')
 
 # resulting mash-up
