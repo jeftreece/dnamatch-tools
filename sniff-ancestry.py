@@ -46,6 +46,13 @@ group_sep = '|'
 # This is experimental and may not work if set to True.
 save_crossmatches = False
 
+# "Side view" is relatively new - the prediction of which side the match occurs
+# on - paternal or maternal, which may be labeled as parent1 or parent2 if no
+# info is available to the matching to say which is which. This can go into the
+# spreadsheet you save, and it is enabled by default. If you want to disable
+# this column in the output, set this to True.
+disable_sideview = False
+disable_sideview = True
 
 
 # --- Usually, no changes are needed below this line ---
@@ -86,6 +93,10 @@ except:
 # field names in the output .csv
 fieldnames = ['Kit1', 'Name1', 'Kit2', 'Name2', 'Manager',
                   'Shared cM', 'Side', 'Note', 'Groups', 'URL']
+if disable_sideview:
+    fieldnames = ['Kit1', 'Name1', 'Kit2', 'Name2', 'Manager',
+                    'Shared cM', 'Note', 'Groups', 'URL']
+
 
 
 # NB: the code is fragile, and will break if Ancestry changes page layout, HTML
@@ -194,8 +205,14 @@ with open(htmlfile, 'r') as rawhtml:
             outrows.append({fieldnames[i]:values[i] for i in range(len(fieldnames))})
             
         # save the row to be output later
-        values = [kit_id, user1, match_id, match_name, managed_by, shared_cm,
-                      side, notesText, group_sep.join(match_groups), match_url]
+        if disable_sideview:
+            values = [kit_id, user1, match_id, match_name, managed_by,
+                          shared_cm, notesText,
+                          group_sep.join(match_groups), match_url]
+        else:
+            values = [kit_id, user1, match_id, match_name, managed_by,
+                          shared_cm, side, notesText,
+                          group_sep.join(match_groups), match_url]
         outrows.append({fieldnames[i]:values[i] for i in range(len(fieldnames))})
 
 # save the result as a .csv
