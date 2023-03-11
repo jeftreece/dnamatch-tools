@@ -25,6 +25,51 @@
 # number of bins on each chromosome for histograms
 num_bins = 40
 
+# graph range for each chromosome
+# False: graph entire chromosome
+# True: graph only up to the largest matching segment
+actual_max = True
+actual_max = False
+
+# number of chromosomes
+nchrom = 23
+
+# plot all chromosomes by default, but list can be overriden as in example here
+# chroms = [1,5,6,8]
+chroms = range(1,nchrom)
+
+
+#----- most tuning and editing is above this line -----
+
+# len of each chromosome, from insilicase.com; TODO - may not be exactly
+# correct for current reference genome. Position [23] is for X
+chr_maxes = [
+    0,
+    247249719,
+    242951149,
+    199501827,
+    191273063,
+    180857866,
+    170899992,
+    158821424,
+    146274826,
+    140273252,
+    135374737,
+    134452384,
+    132349534,
+    114142980,
+    106368585,
+    100338915,
+    88827254,
+    78774742,
+    76117153,
+    63811651,
+    62435964,
+    46944323,
+    49691432,
+    154913754
+    ]
+
 import csv, os, six, sys, functools
 
 # python2 may not work with this script (untested), so print a warning
@@ -33,8 +78,31 @@ if six.PY2:
     print('This message is a warning; program continues to run.')
     print('Refer to https://www.python.org/downloads/')
 
-maxes = [0,] * 23
-counts = {ii:[0,] * num_bins for ii in range(23)}
+# graph either actual max discovered among matches or use chromosome length
+maxes = [0,] * nchrom
+if actual_max:
+    # loop through input files
+    for fname in sys.argv[1:]:
+        csvfile = open(fname)
+        d = csv.DictReader(csvfile)
+        segs = [(int(line['Chromosome']),
+                     int(line['Start Location']),
+                     int(line['End Location'])) for line in d]
+
+        # determine maximum address for each chromosome
+        for cn in range(1,nchrom):
+            try:
+                mm = max([s[2] for s in segs if s[0] == cn])
+                maxes[cn] = max(mm, maxes[cn])
+            except ValueError:
+                #print('nothing for chr.{}'.format(cn))
+                pass
+else:
+    maxes = chr_maxes[0:nchrom]
+
+
+# keeping track of number of matches for each chromosome section
+counts = {ii:[0,] * num_bins for ii in range(nchrom)}
 
 # loop through input files
 for fname in sys.argv[1:]:
@@ -44,27 +112,25 @@ for fname in sys.argv[1:]:
                  int(line['Start Location']),
                  int(line['End Location'])) for line in d]
 
-    # determine maximum address for each chromosome
-    for cn in range(1,23):
-        try:
-            mm = max([s[2] for s in segs if s[0] == cn])
-            maxes[cn] = max(mm, maxes[cn])
-        except ValueError:
-            print('nothing for chr.{}'.format(cn))
-            # pass
-
-    # determine bin counts
+    # bin counts - bump if any part of matching segment is in bin range
     for seg in segs:
+        binsize = 1.0 * maxes[seg[0]] / num_bins
         try:
-            for ii in range(int(seg[1] / (1.0 * maxes[seg[0]] / num_bins)),
-                            int(seg[2] / (1.0 * maxes[seg[0]] / num_bins))):
-                counts[seg[0]][ii] += 1
+            for ib in range(0,num_bins):
+                endpoint1 = ib * binsize
+                endpoint2 = (ib+1) * binsize
+                if seg[1] < endpoint2 and seg[2] >= endpoint1:
+                    counts[seg[0]][ib] += 1
         except:
-            print(seg, ii)
+            print(seg, ib)
+            raise
 
+    # uncomment if you're a nerd and want to see inner workings
     #print(segs)
     #print(maxes)
-    #print(counts)
+    #print(counts[1])
+
+# ----- code below produces the actual graph, using matplotlib.pyplot -----
 
 import matplotlib.pyplot as plt
 
@@ -72,15 +138,13 @@ import matplotlib.pyplot as plt
 nrows = 6
 ncols = 4
 
-# list of chromosome numbers to plot
-chroms = [1,5,6,8]
-chroms = range(1,len(counts))
-
+# produce a sub-plot for each chromosome number in chroms list
 plots = [(nrows,ncols,i+1) for i in range(len(chroms))]
 fig = plt.figure()
 
 # increase height padding between subplots
 fig.subplots_adjust(hspace=0.6)
+
 for idx in range(len(chroms)):
     ax = fig.add_subplot(plots[idx][0], plots[idx][1], plots[idx][2])
     left = range(num_bins)
@@ -100,6 +164,10 @@ plt.show()
     
 
 sys.exit(0)
+
+
+
+# ----- code below is currently unused -----
 
 left = range(num_bins)
 height = counts[8]
