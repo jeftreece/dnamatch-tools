@@ -161,6 +161,28 @@ Next, run the script, and find the output in the .csv file it creates.
 Refer to other comments in the script
 
 
+## ff-matchgraph.py:
+
+**User story**: I have match lists for a number of my relatives in
+multiple spreadsheets, and I would like to generate a database and
+edges and nodes from these combined matches to study matches in common
+between the testers
+
+This code is in alpha stage. It probably works as described, but refer
+to comments in code, and your mileage may vary. Please provide feedback.
+
+
+## cluster-segments.py:
+
+**User story**: I have a list of segments matched for a given tester,
+and I want to study which sections of each chromosome got the most
+matches so I may have some additional information for chromosome
+mapping.
+
+This code is in alpha stage. It probably works as described, but refer
+to comments in code, and your mileage may vary. Please provide feedback.
+
+
 ## merge-csv.py:
 
 **User story**: I've pulled a bunch of DNA matches into multiple
