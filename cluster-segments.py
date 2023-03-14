@@ -23,7 +23,7 @@
 #
 
 # number of bins on each chromosome for histograms
-num_bins = 40
+num_bins = 50
 
 # graph range for each chromosome
 # False: graph entire chromosome
@@ -41,36 +41,56 @@ chroms = range(1,nchrom)
 
 #----- most tuning and editing is above this line -----
 
-# len of each chromosome, from insilicase.com; TODO - may not be exactly
-# correct for current reference genome. Position [23] is for X
-chr_maxes = [
-    0,
-    247249719,
-    242951149,
-    199501827,
-    191273063,
-    180857866,
-    170899992,
-    158821424,
-    146274826,
-    140273252,
-    135374737,
-    134452384,
-    132349534,
-    114142980,
-    106368585,
-    100338915,
-    88827254,
-    78774742,
-    76117153,
-    63811651,
-    62435964,
-    46944323,
-    49691432,
-    154913754
-    ]
+# input .csv file must match one of these signatures (column names)
+csv_signatures = {
+    '23andMe': ('Chromosome Number', 'Chromosome Start Point',
+                    'Chromosome End Point'),
+    'FamilyFinder1': ('Chromosome', 'Start Location', 'End Location'),
+    'FamilyFinder2': ('Chromosome', 'Start Position', 'End Position'),
+    'Gedmatch1': ('Chr', 'Start', 'End'),
+    'Gedmatch2': ('Chr', 'Start Position', 'End Position'),
+    'Gedmatch3': ('Chr', 'B37 Start', 'B37 End'),
+    }
+
+# len of each chromosome, from various sources - may not be exactly
+# correct for current reference genome. Only affects histogram graph range.
+chr_maxes = {
+    '1': 249250621,
+    '2': 243199373,
+    '3': 199501827,
+    '4': 191273063,
+    '5': 180915260,
+    '6': 171115067,
+    '7': 159138663,
+    '8': 146364022,
+    '9': 141213431,
+    '10': 135374737,
+    '11': 135006516,
+    '12': 133851895,
+    '13': 115169878,
+    '14': 107349540,
+    '15': 102531392,
+    '16': 90354753,
+    '17': 81195210,
+    '18': 78077248,
+    '19': 63811651,
+    '20': 63025520,
+    '21': 48129895,
+    '22': 51304566,
+    'X': 155270560,
+    'Y': 59373566
+    }
 
 import csv, os, six, sys, functools
+
+# test if this is a known format .csv and return the header names
+def match_signature(fieldnames, signatures):
+    for signature in signatures:
+        if signatures[signature][0] in fieldnames and \
+                 signatures[signature][1] in fieldnames and \
+                 signatures[signature][2] in fieldnames:
+            return signatures[signature]
+    return None
 
 # python2 may not work with this script (untested), so print a warning
 if six.PY2:
@@ -79,38 +99,48 @@ if six.PY2:
     print('Refer to https://www.python.org/downloads/')
 
 # graph either actual max discovered among matches or use chromosome length
-maxes = [0,] * nchrom
+maxes = {}
 if actual_max:
     # loop through input files
     for fname in sys.argv[1:]:
         csvfile = open(fname)
         d = csv.DictReader(csvfile)
-        segs = [(int(line['Chromosome']),
-                     int(line['Start Location']),
-                     int(line['End Location'])) for line in d]
+        csv_cols = match_signature(d.fieldnames, csv_signatures)
+        if not csv_cols:
+            print('Input .csv file does not match a known format. Exiting.')
+            sys.exit(1)
+
+        segs = [(line[csv_cols[0]], int(line[csv_cols[1]]),
+                     int(line[csv_cols[2]]))
+                for line in d]
 
         # determine maximum address for each chromosome
         for cn in range(1,nchrom):
             try:
                 mm = max([s[2] for s in segs if s[0] == cn])
-                maxes[cn] = max(mm, maxes[cn])
+                try:
+                    maxes[cn] = max(mm, maxes[cn])
+                except KeyError:
+                    maxes[cn] = mm
             except ValueError:
                 #print('nothing for chr.{}'.format(cn))
                 pass
 else:
-    maxes = chr_maxes[0:nchrom]
+    maxes = chr_maxes
 
 
 # keeping track of number of matches for each chromosome section
-counts = {ii:[0,] * num_bins for ii in range(nchrom)}
+counts = {ii:[0,] * num_bins for ii in maxes}
 
-# loop through input files
+# loop through input files, count each segment where it lands
 for fname in sys.argv[1:]:
     csvfile = open(fname)
     d = csv.DictReader(csvfile)
-    segs = [(int(line['Chromosome']),
-                 int(line['Start Location']),
-                 int(line['End Location'])) for line in d]
+    csv_cols = match_signature(d.fieldnames, csv_signatures)
+    # print('relevant columns:', csv_cols)
+    segs = [(line[csv_cols[0]], int(line[csv_cols[1]]),
+                 int(line[csv_cols[2]]))
+                for line in d if line[csv_cols[0]]]
 
     # bin counts - bump if any part of matching segment is in bin range
     for seg in segs:
@@ -125,10 +155,10 @@ for fname in sys.argv[1:]:
             print(seg, ib)
             raise
 
-    # uncomment if you're a nerd and want to see inner workings
-    #print(segs)
-    #print(maxes)
-    #print(counts[1])
+# uncomment if you're a nerd and want to see inner workings
+#print(segs)
+#print(maxes)
+#print(counts['1'])
 
 # ----- code below produces the actual graph, using matplotlib.pyplot -----
 
@@ -145,11 +175,20 @@ fig = plt.figure()
 # increase height padding between subplots
 fig.subplots_adjust(hspace=0.6)
 
-for idx in range(len(chroms)):
+for chrom in maxes:
+    # skip X and Y for now - only handle 1 through 22
+    if chrom in ('X', 'Y'):
+        continue
+    # print('Chromosome', chrom, '...')
+    idx = int(chrom) - 1
     ax = fig.add_subplot(plots[idx][0], plots[idx][1], plots[idx][2])
     left = range(num_bins)
-    height = counts[chroms[idx]]
-    tick_label = ['{:,.0f}m'.format(maxes[chroms[idx]]/num_bins/1000000. * bin) for bin in range(num_bins)]
+    try:
+        height = counts[chrom]
+    except KeyError:
+        height = [0,] * num_bins
+    tick_label = ['{:,.0f}m'.format(maxes[chrom]/num_bins/1000000. * bin) for bin in range(num_bins)]
+
     ax.bar(left, height, tick_label=tick_label, width=0.8)
     #ax.set_xticklabels(tick_label)
     ax.tick_params(labelrotation=90,labelsize=7)
@@ -171,7 +210,7 @@ sys.exit(0)
 
 left = range(num_bins)
 height = counts[8]
-tick_label = ['{:,.0f}'.format(maxes[8]/num_bins * bin) for bin in range(num_bins)]
+tick_label = ['{:,.0f}'.format(maxes['8']/num_bins * bin) for bin in range(num_bins)]
 plt.bar(left, height, tick_label=tick_label, width=0.8)
 plt.xlabel('chr 8 location')
 plt.ylabel('count of matches')
