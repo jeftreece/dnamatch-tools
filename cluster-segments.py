@@ -35,8 +35,8 @@ actual_max = False
 nchrom = 23
 
 # plot all chromosomes by default, but list can be overriden as in example here
-# chroms = [1,5,6,8]
-chroms = range(1,nchrom)
+chroms = ['1','5','6','8']
+chroms = [str(ii) for ii in range(1,nchrom)]
 
 
 #----- most tuning and editing is above this line -----
@@ -160,27 +160,28 @@ for fname in sys.argv[1:]:
 #print(maxes)
 #print(counts['1'])
 
+
 # ----- code below produces the actual graph, using matplotlib.pyplot -----
 
 import matplotlib.pyplot as plt
 
-# number of suplot rows and columns
-nrows = 6
+# number of subplot rows and columns
 ncols = 4
+nrows = int((len(chroms) - 1) / ncols) + 1
 
 # produce a sub-plot for each chromosome number in chroms list
-plots = [(nrows,ncols,i+1) for i in range(len(chroms))]
+plots = [(nrows,ncols,i) for i in range(1,len(chroms)+1)]
 fig = plt.figure()
 
 # increase height padding between subplots
 fig.subplots_adjust(hspace=0.6)
 
-for chrom in maxes:
+for chrom in chroms:
     # skip X and Y for now - only handle 1 through 22
     if chrom in ('X', 'Y'):
         continue
     # print('Chromosome', chrom, '...')
-    idx = int(chrom) - 1
+    idx = chroms.index(chrom)
     ax = fig.add_subplot(plots[idx][0], plots[idx][1], plots[idx][2])
     left = range(num_bins)
     try:
