@@ -179,6 +179,27 @@ and I want to study which sections of each chromosome got the most
 matches so I may have some additional information for chromosome
 mapping.
 
+**User skill required**: you will need to install python, clone or copy this source code,
+find your data files on the computer, edit the file cluster-segments.py (optional),
+and run it from the command-line.
+
+This code produces a histogram for each chromosome. The histogram
+represents how many segment matches occur at that place on the
+chromosome. There are many uses for visualizing the chromosomes in
+this manner. For example, it can reveal areas of the chromosomes that
+are "hot" such that many matches occur at those areas.
+
+The input segments are one or more spreadsheets as .csv files that
+have, at least, a chromosome number, a starting position and an ending
+position. These are the only three columns used in creating the
+histograms. The .csv file may be from anywhere, as long as it contains
+the three columns. For example, various segment lists can be exported
+at gedmatch, or at most testing companies.
+
+Sample output:
+
+![cluster-segments](/screenshots/cluster-segments-sample.png?raw=true "Sample output from cluster-segments")
+
 This code is in alpha stage. It probably works as described, but refer
 to comments in code, and your mileage may vary. Please provide feedback.
 
