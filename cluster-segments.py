@@ -9,7 +9,9 @@
 # No warranty. You are responsible for your use of this program.
 
 # Purpose:
-# Form histogram clusters of matching segments "hot spots"
+# For genetic genealogy, autosomal matches, and chromosome mapping
+#
+# Form histogram clusters of matching chromosome segments, aka "hot spots"
 #
 # For example, if you use a list of known segments matching some related
 # testers who share a common ancestor, you might expect to find certain areas
@@ -35,25 +37,28 @@ actual_max = False
 nchrom = 23
 
 # plot all chromosomes by default, but list can be overriden as in example here
-chroms = ['1','5','6','8']
-chroms = [str(ii) for ii in range(1,nchrom)] + ['X',]
+chroms = ['1','5','6','8']                              # a few chromosomes
+chroms = [str(ii) for ii in range(1,nchrom)] + ['X',]   # all chromosomes
 
 
 #----- most tuning and editing is above this line -----
 
-# input .csv file must match one of these signatures (column names)
+# Input .csv file must match one of these signatures (column names).
+# Unimportant where the file came from, only that it matches a signature.
+# Add new signatures as needed, but keep column names in chr,start,end order.
 csv_signatures = {
-    '23andMe': ('Chromosome Number', 'Chromosome Start Point',
+    '23andMe':   ('Chromosome Number', 'Chromosome Start Point',
                     'Chromosome End Point'),
-    'FamilyFinder1': ('Chromosome', 'Start Location', 'End Location'),
-    'FamilyFinder2': ('Chromosome', 'Start Position', 'End Position'),
+    'FTDNA1':    ('Chromosome', 'Start Location', 'End Location'),
+    'FTDNA2':    ('Chromosome', 'Start Position', 'End Position'),
     'Gedmatch1': ('Chr', 'Start', 'End'),
     'Gedmatch2': ('Chr', 'Start Position', 'End Position'),
     'Gedmatch3': ('Chr', 'B37 Start', 'B37 End'),
     }
 
-# len of each chromosome, from various sources - may not be exactly
-# correct for current reference genome. Only affects histogram graph range.
+# Length of each chromosome, from various sources - may not be exactly
+# correct for current reference genome, but not critical.
+# Only affects histogram graph range, not graph correctness.
 chr_maxes = {
     '1': 249250621,
     '2': 243199373,
@@ -83,8 +88,9 @@ chr_maxes = {
 
 import csv, os, six, sys, functools
 
-# test if this is a known format .csv and return the header names
-# in the order chromosome,start,end
+# Test if this is a known format .csv and return the header names
+# in the order chromosome,start,end. Matches a signature if all column
+# names in the signature are contained in the fieldnames.
 def match_signature(fieldnames, signatures):
     avail_cols = set(fieldnames)
     for signature in signatures:
@@ -99,7 +105,10 @@ if six.PY2:
     print('This message is a warning; program continues to run.')
     print('Refer to https://www.python.org/downloads/')
 
-# graph either actual max discovered among matches or use chromosome length
+# This program can graph either actual max chromosome position discovered among
+# matches or use the chromosome length defined above. If using the scale based
+# on actual max, all input files need to be scanned to determine the maximum
+# chromosome positions
 maxes = {}
 if actual_max:
     # loop through input files
@@ -130,7 +139,8 @@ else:
     maxes = chr_maxes
 
 
-# keeping track of number of matches for each chromosome section
+# data struct for keeping track of number of matches for each chromosome
+# section (histogram bin)
 counts = {ii:[0,] * num_bins for ii in maxes}
 
 # loop through input files, count each segment where it lands
@@ -160,7 +170,7 @@ for fname in sys.argv[1:]:
                 if seg[1] < endpoint2 and seg[2] >= endpoint1:
                     counts[seg[0]][ib] += 1
         except:
-            # some unknown error happened that will have to be debugged
+            # oops some unknown error happened that will have to be debugged
             print(seg, ib)
             raise
 
@@ -178,16 +188,17 @@ import matplotlib.pyplot as plt
 ncols = 4
 nrows = int((len(chroms) - 1) / ncols) + 1
 
-# produce a sub-plot for each chromosome number in chroms list
+# set up a sub-plot for each chromosome number in chroms list
 plots = [(nrows,ncols,i) for i in range(1,len(chroms)+1)]
 fig = plt.figure()
 
 # increase height padding between subplots
 fig.subplots_adjust(hspace=0.6)
 
-# render each subplot
+# render each subplot; refer to matplotlib.pyplot documentation
 for chrom in chroms:
 
+    # uncomment if you like to see a chatty program
     # print('Chromosome', chrom, '...')
 
     idx = chroms.index(chrom)
