@@ -196,6 +196,11 @@ histograms. The .csv file may be from anywhere, as long as it contains
 the three columns. For example, various segment lists can be exported
 at gedmatch, or at most testing companies.
 
+Sample output:
+<div style="width:100px">
+![cluster-segments](./screenshots/cluster-segments-sample.png?raw=true "Sample output from cluster-segments")
+</div>
+
 This code is in alpha stage. It probably works as described, but refer
 to comments in code, and your mileage may vary. Please provide feedback.
 
