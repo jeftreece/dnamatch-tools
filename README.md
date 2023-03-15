@@ -179,6 +179,10 @@ and I want to study which sections of each chromosome got the most
 matches so I may have some additional information for chromosome
 mapping.
 
+**User skill required**: you will need to install python, clone or copy this source code,
+find your data files on the computer, edit the file cluster-segments.py (optional),
+and run it from the command-line.
+
 This code produces a histogram for each chromosome. The histogram
 represents how many segment matches occur at that place on the
 chromosome. There are many uses for visualizing the chromosomes in
