@@ -23,7 +23,7 @@
 #
 
 # number of bins on each chromosome for histograms
-num_bins = 50
+num_bins = 40
 
 # graph range for each chromosome
 # False: graph entire chromosome
@@ -36,7 +36,7 @@ nchrom = 23
 
 # plot all chromosomes by default, but list can be overriden as in example here
 chroms = ['1','5','6','8']
-chroms = [str(ii) for ii in range(1,nchrom)]
+chroms = [str(ii) for ii in range(1,nchrom)] + ['X',]
 
 
 #----- most tuning and editing is above this line -----
@@ -84,11 +84,12 @@ chr_maxes = {
 import csv, os, six, sys, functools
 
 # test if this is a known format .csv and return the header names
+# in the order chromosome,start,end
 def match_signature(fieldnames, signatures):
+    avail_cols = set(fieldnames)
     for signature in signatures:
-        if signatures[signature][0] in fieldnames and \
-                 signatures[signature][1] in fieldnames and \
-                 signatures[signature][2] in fieldnames:
+        needed_cols = set(signatures[signature])
+        if avail_cols.intersection(needed_cols) == needed_cols:
             return signatures[signature]
     return None
 
@@ -115,7 +116,7 @@ if actual_max:
                 for line in d]
 
         # determine maximum address for each chromosome
-        for cn in range(1,nchrom):
+        for cn in chroms:
             try:
                 mm = max([s[2] for s in segs if s[0] == cn])
                 try:
@@ -138,12 +139,19 @@ for fname in sys.argv[1:]:
     d = csv.DictReader(csvfile)
     csv_cols = match_signature(d.fieldnames, csv_signatures)
     # print('relevant columns:', csv_cols)
+
+    # read all lines of csv file as long as there's a chromosome number
     segs = [(line[csv_cols[0]], int(line[csv_cols[1]]),
                  int(line[csv_cols[2]]))
                 for line in d if line[csv_cols[0]]]
 
-    # bin counts - bump if any part of matching segment is in bin range
+    # bump bin count if any part of matching segment is in bin range
     for seg in segs:
+
+        # skip if we're not plotting this chromosome
+        if seg[0] not in chroms:
+            continue
+
         binsize = 1.0 * maxes[seg[0]] / num_bins
         try:
             for ib in range(0,num_bins):
@@ -152,6 +160,7 @@ for fname in sys.argv[1:]:
                 if seg[1] < endpoint2 and seg[2] >= endpoint1:
                     counts[seg[0]][ib] += 1
         except:
+            # some unknown error happened that will have to be debugged
             print(seg, ib)
             raise
 
@@ -176,11 +185,11 @@ fig = plt.figure()
 # increase height padding between subplots
 fig.subplots_adjust(hspace=0.6)
 
+# render each subplot
 for chrom in chroms:
-    # skip X and Y for now - only handle 1 through 22
-    if chrom in ('X', 'Y'):
-        continue
+
     # print('Chromosome', chrom, '...')
+
     idx = chroms.index(chrom)
     ax = fig.add_subplot(plots[idx][0], plots[idx][1], plots[idx][2])
     left = range(num_bins)
@@ -191,9 +200,7 @@ for chrom in chroms:
     tick_label = ['{:,.0f}m'.format(maxes[chrom]/num_bins/1000000. * bin) for bin in range(num_bins)]
 
     ax.bar(left, height, tick_label=tick_label, width=0.8)
-    #ax.set_xticklabels(tick_label)
     ax.tick_params(labelrotation=90,labelsize=7)
-    #ax.set_title('chr.{}'.format(chroms[idx]))
     ax.set_xlabel('chr.{}'.format(chroms[idx]))
     ax.set_ymargin(.2)
 
