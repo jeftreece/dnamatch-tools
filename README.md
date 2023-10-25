@@ -179,9 +179,9 @@ and I want to study which sections of each chromosome got the most
 matches so I may have some additional information for chromosome
 mapping.
 
-**User skill required**: you will need to install python, clone or copy this source code,
-find your data files on the computer, edit the file cluster-segments.py (optional),
-and run it from the command-line.
+**User skill required**: you will need to install python, clone or
+copy this source code, find your data files on the computer, edit the
+file cluster-segments.py (optional), and run it from the command-line.
 
 This code produces a histogram for each chromosome. The histogram
 represents how many segment matches occur at that place on the
@@ -211,17 +211,33 @@ spreadsheets, and I would like to combine those spreadsheets into one
 file, with duplicates removed so I can use the de-duplicated rows as
 input into another program.
 
+**User story**: I have a subscribed account at <company>, and they
+only give me my top 5000 matches in the spreadsheet I can
+download. When a new match comes along, it bumps someone off the
+list. I want to save these .csv files every now and then so I can
+later combined all of the saved match lists into one and view the
+matches that got dropped off of the list.
+
+**User story**: I am using match lists saved at different times in my
+genealogy research. Some of the people have updated haplogroup
+information in the newer saved list, while the other (static) columns
+for that person are still the same, and I want the combined
+spreadsheet to reflect only the newest information.
+
 **User skill required**: you will need to install python, clone or
-copy this source code, and run it as a python program
+copy this source code, optionally edit some variables in the program,
+and run it as a python program
 
 This script takes multiple .csv files and combines them into one file
 that has duplicate rows removed.  Each .csv file must have identical
 columns for the merge to take place. Non-identical .csv files are
 ignored.
 
-**Usage**: There are no settings. Run the program with all of the file
-names you want to merge, plus the output file (final filename) on the
-command line.
+**Usage**: There are no settings for the default behavior. Run the
+program with all of the file names you want to merge, plus the output
+file (final filename) on the command line. Non-default behavior of
+merging certain columns with updated information into one can be
+enabled by edited some variables in the program before running.
 
 Example: merge-csv.py a.csv b.csv c.csv out.csv
 
