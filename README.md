@@ -211,7 +211,7 @@ spreadsheets, and I would like to combine those spreadsheets into one
 file, with duplicates removed so I can use the de-duplicated rows as
 input into another program.
 
-**User story**: I have a subscribed account at <company>, and they
+**User story**: I have a subscribed account at SomeCompany, and they
 only give me my top 5000 matches in the spreadsheet I can
 download. When a new match comes along, it bumps someone off the
 list. I want to save these .csv files every now and then so I can
