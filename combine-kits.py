@@ -114,18 +114,8 @@ def guess_gender(kit):
         gender = 'M'
     return gender
 
-
-# Loop through data files:
-# To support additional company data files, this loop may need to be tweaked.
-# File types currently handled:
-#   .csv, .txt: plain csv file
-#   .csv.gz: compressed csvfile
-#   .zip: zipped csvfile
-# Companies supported: AncestryDNA, FTDNA, 23andMe
-# Additional companies might work, if data format is similar.
-for f in INFILES:
-    if not f:
-        continue
+# open a csv file and return the lines contained in it
+def get_filelines(f):
     try:
         if f.lower().endswith('.csv.gz'):
             with gzip.open(f, 'rt') as gf:
@@ -143,22 +133,36 @@ for f in INFILES:
         elif f.lower().endswith('.csv') or f.lower().endswith('.txt'):
             lines = [l for l in open(f, 'r').readlines() if not l.startswith('#')]
         else:
-            print('Skipping unrecognized file type: {} - use .csv, .txt, or .zip'.format(f))
-            continue
+            print('Skipping unrecognized file {} of type: {} - use .csv, .txt, or .zip'.format(f))
+            return None
     except IOError as ioe:
         if ioe.errno == errno.ENOENT:
             print('Could not find {} - check file name and readability.'.format(f))
-            continue
+            return None
         else:
             print('There may be a problem with {} - did not read it.'.format(f))
-            continue
+            return None
     except TypeError:
         print('There was a problem processing {} - try unzipping it.'.format(f))
         # raise
-        continue
+        return None
     except Exception as e:
-        print('Error {} happened while processing {} - continuing.'.format(e,f))
+        print('Error "{}" happened while processing {} - continuing.'.format(e,f))
+        return None
+    return lines
+    
+# Loop through data files:
+# To support additional company data files, this loop may need to be tweaked.
+# File types currently handled:
+#   .csv, .txt: plain csv file
+#   .csv.gz: compressed csvfile
+#   .zip: zipped csvfile
+# Companies supported: AncestryDNA, FTDNA, 23andMe
+# Additional companies might work, if data format is similar.
+for f in INFILES:
+    if not f:
         continue
+    lines = get_filelines(f)
 
     # standardize field names and csv flavor
     # handles either rsid,chr,pos,result or rsid,chr,pos,allele1,allele2
