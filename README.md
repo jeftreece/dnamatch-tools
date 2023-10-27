@@ -1,8 +1,10 @@
 # dnamatch-tools
 
-Open-source tools providing capabilities for your DNA data from various DNA testing companies.
+Open-source tools providing capabilities for your DNA data from
+various DNA testing companies.
 
-This project provides simple tools for working with various raw DNA and match list files for genetic genealogy.
+This project provides simple tools for working with various raw DNA
+and match list files for genetic genealogy.
 
 Goals:
 - open source license to promote sharing
@@ -10,8 +12,9 @@ Goals:
 - community contributions accepted so it's not necessary to fork other projects
 - provides capabilities that enhance or extend DNA matching
 
-The typical user is expected to be able to find and install python, run run python from the command-line,
-and locate and manipulate text files on the computer.
+The typical user is expected to be able to find and install python,
+run run python from the command-line, and locate and manipulate text
+files on the computer.
 
 Notes for one-time setup and other hints can be found at the bottom of
 this README, under **HELP and HINTS**.
@@ -19,18 +22,21 @@ this README, under **HELP and HINTS**.
 
 ## combine-kits.py:
 
-**User story**: as a genetic genalogist who has tested at AncestryDNA, 23andMe and FTDNA,
-I want to combine all of my data into a single data file that has the best coverage
-possible from the available data for better matching and SNP overlap.
+**User story**: as a genetic genalogist who has tested at AncestryDNA,
+23andMe and FTDNA, I want to combine all of my data into a single data
+file that has the best coverage possible from the available data for
+better matching and SNP overlap.
 
-**User story**: as a tester at another company, I want to upload my data file to gedmatch,
-but it's being rejected by gedmatch due to formatting or ordering or something.
+**User story**: as a tester at another company, I want to upload my
+data file to gedmatch, but it's being rejected by gedmatch due to
+formatting or ordering or something.
 
-**User skill required**: you will need to install python, clone or copy this source code,
-find your data files on the computer, edit the file combine-kits.py, and run it from the command-line.
+**User skill required**: you will need to install python, clone or
+copy this source code, find your data files on the computer, edit the
+file combine-kits.py, and run it from the command-line.
 
-This script accepts raw data of autosomal tests from a few different autosomal testing companies
-and combines it into one.
+This script accepts raw data of autosomal tests from a few different
+autosomal testing companies and combines it into one.
 
 Another way to run it is with one kit instead of multiple ones.
 By running it with just one test, certain problems may be fixed in the data.
@@ -114,6 +120,10 @@ cut-and-paste of AncestryDNA matches into a spreadsheet with macros
 and formulas, but I would like a programmatic way of generating my
 spreadsheet that I can understand.
 
+**User story**: I want a list of my "starred" matches from AncestryDNA
+because I use starring for a specific purpose that I want to have
+access to outside of Ancestry.
+
 **User skill required**: you will need to install python, clone or
 copy this source code, log into your AncestryDNA account, save the web
 page of interest from your AncestryDNA matches (right click, then save
@@ -132,16 +142,26 @@ be opened with LibreOffice or any other spreadsheet that can read a
 it's not meant to be read by a human. It's meant to be read by a web
 browser. Sniff-ancestry.py turns it into something usable.
 
-**Usage**: There are about four settings that can be modified in the script.
-Check those before running.
+The script can save the group information and the tree information, so
+that matches who are assigned a certain color dot can be analyzed in
+the spreadsheet.
 
-First, bring up a match list, and scroll down to load as many matches
-as you wish. Then right click on the page and "save page as..." or use
-some other method to capture the page source into a file. If you have
-a choice how to save, use the full web page option. It may produce a
-folder with a lot of separate files and a separate .html file with the
-name as you chose in saving it. Ignore the folder. You can remove it
-if you want. You just need the .html file.
+**Usage**: **Firstly**, there are some settings that can be modified
+in the script.  The settings affect how the script runs and what
+information is saved in the .csv file. Check those before
+running. Edit the script called "sniff-ancestry.py" using any text
+editor and only change those specific settings.
+
+**Next**, bring up a match list, and scroll down to load as many
+matches as you wish. The match list loads incrementally, so you must
+scroll to the end of what you want to save before dong the next step.
+
+**The next step** is right click on the page and "save page as..." or
+use some other method to capture the page source into a file. If you
+have a choice how to save, use the full web page option. It may
+produce a folder with a lot of separate files and a separate .html
+file with the name as you chose in saving it. Ignore the folder. You
+can remove it if you want. You just need the .html file.
 
 NOTE: you probably won't have much success trying to save all of your
 matches in one go. It's recommended that you break up the list into
@@ -154,9 +174,11 @@ Saving the file can typically be done by a right-click on the web
 page, but the specific instructions may depend on which browser you're
 using. As long as you can save it as a complete .html file, it should work.
 
-Make sure that file matches the file name in the script, or adjust accordingly.
+**Next**, Make sure that file matches the file name in the script, or
+adjust accordingly. What name you chose when you did the "save page
+as..." above needs to be the same name that is in the script.
 
-Next, run the script, and find the output in the .csv file it creates.
+**Next**, run the script, and find the output in the .csv file it creates.
 
 Refer to other comments in the script
 
