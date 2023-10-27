@@ -16,14 +16,24 @@
 # See accompanying LICENSE file.
 # Use at your own risk
 
-# --- Things you may want to change ---
+# Reminder1: commented lines begin with a '#' and are ignored.
 
-# The output of "save page as..." from AncestryDNA match list.  Note: if your
-# web browser gives you multiple options for saving the page, use the one that
-# produces a complete .html file. It should be a pretty big file. If that
-# doesn't work, try the other options until you find one that works.
+# Reminder2: when multiple lines are present, only the final one takes
+# effect. For example, if you see:
+a = 5
+a = 6
+# then the value of a is 6, the final setting.
 
-# The file location must match where you stored the file.
+
+# ===== THINGS YOU MAY WANT TO CHANGE APPEAR BELOW =====
+
+# Here, you must specify the input file location (as saved from your web
+# browser). It is the output of "save page as..." from AncestryDNA match list.
+# Note: if your web browser gives you multiple options for saving the page, use
+# the one that produces a complete .html file. It should be a pretty big
+# file. If that doesn't work, try the other options until you find one that
+# works. The file location must match where you stored the file.
+#
 # WINDOWS: you may need a line similar to one of these (without the hash):
 #htmlfile = 'C:/Users/Treece/Desktop/A.html'
 #htmlfile = 'A.html'
@@ -36,6 +46,16 @@ tester_csv = 'matches.csv'
 
 # The separator between group names in the output csv file
 group_sep = '|'
+
+# How to handle the groups
+# True: expand the groups to separate columns, "X" or "" in the column
+# False: put the groups together into one column, separated by group_sep
+groups_in_columns = True
+groups_in_columns = False
+
+# Whether or not to save tree information (public/private/linked/#people/thru)
+disable_tree_info = True
+disable_tree_info = False
 
 # Also save "cross matches" - if it's an in-common-with report?  NB: it's not
 # possible to save amount of shared cM this way. E.g. if you're logged into kit
@@ -54,8 +74,8 @@ save_crossmatches = False
 disable_sideview = False
 disable_sideview = True
 
+# ===== END. NO CHANGES ARE NORMALLY NEEDED BELOW =====
 
-# --- Usually, no changes are needed below this line ---
 
 import csv, os, re, sys
 
@@ -91,18 +111,30 @@ except:
     sys.exit(1)
 
 # field names in the output .csv
-fieldnames = ['Kit1', 'Name1', 'Kit2', 'Name2', 'Manager',
-                  'Shared cM', 'Side', 'Note', 'Groups', 'URL']
-if disable_sideview:
-    fieldnames = ['Kit1', 'Name1', 'Kit2', 'Name2', 'Manager',
-                    'Shared cM', 'Note', 'Groups', 'URL']
+fieldnames = ['Kit1', 'Name1', 'Kit2', 'Name2', 'Manager', 'Shared cM']
+if not disable_sideview:
+    fieldnames += ['Side',]
+if not disable_tree_info:
+    fieldnames += ['Tree?', 'People', 'Thruline']
+fieldnames += ['Note', 'Groups', 'URL']
 
+# helper routine takes groups column and makes it into multiple separate cols
+def groups_to_cols(d, colnames):
+    vals = d['Groups'].split(group_sep)
+    retval = {c:'' for c in colnames if c != ''}
+    for x in vals:
+        if x: # an empty string does not get split and could be in the vals
+            retval.update({x:'X'})
+    return retval
 
 
 # NB: the code is fragile, and will break if Ancestry changes page layout, HTML
 # tags and variables. It should be easy to fix in most cases, since
 # BeautifulSoup module does the heavy lifting. Open the raw html file and find
 # the section and observe what tags are being used, then adjust below
+
+# when color dots are used to group matches, this is the list of groups found
+all_groups_found = set()
 
 outrows = []
 with open(htmlfile, 'r') as rawhtml:
@@ -171,7 +203,12 @@ with open(htmlfile, 'r') as rawhtml:
         groupings = addl.find_all('span', {'class': re.compile('indicatorGroup ')})
         match_groups = []
         for grp in groupings:
-            match_groups.append(grp['title'])
+            match_groups.append(grp['title']) # regular groups
+        starspan = addl.find('span', {'class': re.compile('iconStar ')})
+        if starspan:
+            match_groups.append(starspan['title']) # Starred matches
+        # keep track of complete list of groups found in all matches
+        all_groups_found = all_groups_found.union(set(match_groups))
 
         # which side? Parent1, Parent2, unassigned
         side = person.find('span', {'class': re.compile('parentLineText ')}).string.strip()
@@ -192,6 +229,25 @@ with open(htmlfile, 'r') as rawhtml:
             # default - whatever it says
             pass
 
+        # tree info
+        try:
+            # e.g. [' Public linked tree ', '2,394 People']
+            tree = list(person.find('div', {'class': re.compile('areaTreeGroup ')}).strings)
+            if tree[0]:
+                tree_status = tree[0].strip()
+            if tree[1]:
+                tree_people = int(tree[1].split(' ')[0].replace(',',''))
+        except:
+            tree_status = ''
+            tree_people = ''
+        try:
+            # e.g. 'Common ancestor'
+            tree_ancestor = person.find('div', {'class': re.compile('iconFamily ')}).string.strip()
+        except:
+            tree_ancestor = ''
+
+        
+        
         # is the kit managed by someone?
         try:
             managed_by = person.find('div', {'class': re.compile('userCardSubTitle ')}).string.strip()
@@ -205,15 +261,27 @@ with open(htmlfile, 'r') as rawhtml:
             outrows.append({fieldnames[i]:values[i] for i in range(len(fieldnames))})
             
         # save the row to be output later
-        if disable_sideview:
-            values = [kit_id, user1, match_id, match_name, managed_by,
-                          shared_cm, notesText,
-                          group_sep.join(match_groups), match_url]
-        else:
-            values = [kit_id, user1, match_id, match_name, managed_by,
-                          shared_cm, side, notesText,
-                          group_sep.join(match_groups), match_url]
+        values = [kit_id, user1, match_id, match_name, managed_by, shared_cm]
+        if not disable_sideview:
+            values += [side,]
+        if not disable_tree_info:
+            values += [tree_status, tree_people, tree_ancestor]
+        values += [notesText, group_sep.join(match_groups), match_url]
+
         outrows.append({fieldnames[i]:values[i] for i in range(len(fieldnames))})
+
+# if requested, make the groups into a sparse table rather than single column
+if groups_in_columns:
+    t = []
+    for r in outrows:
+        gdic = groups_to_cols(r, all_groups_found)
+        s = {**r, **gdic}
+        s.pop('Groups')
+        t.append(s)
+    outrows = t
+    pos = fieldnames.index('Groups')
+    fieldnames = fieldnames[:pos] + list(all_groups_found) + fieldnames[pos+1:]
+
 
 # save the result as a .csv
 # Dialect.quotechar: is '"' by default
