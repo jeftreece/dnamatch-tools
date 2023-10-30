@@ -6,6 +6,11 @@ various DNA testing companies.
 This project provides simple tools for working with various raw DNA
 and match list files for genetic genealogy.
 
+**Note about data usage**: These programs run on your computer, using
+  data that you provide. They do not run on a "cloud" server. Since
+  nothing is ever uploaded anywhere to run these programs, you retain
+  your control of the data.
+
 Goals:
 - open source license to promote sharing
 - not dependent on a particular OS or platform
@@ -48,16 +53,18 @@ The reason for combining kits is each testing company gets a slightly different
 coverage of the DNA, which may also depend on when you tested,
 since occasionally testing companies switch to different testing technology.
 
-Comparing your results with someone else from the same testing company,
-using the same testing technology, will not be improved significantly by combining test results.
-However, comparing your results with someone who tested at a different company or whose results
-came from a different testing technology, will likely be improved because there will be more
-SNPs that can be compared.
-The end result may mean more-relevant matches and better definition of the end-points
-of the overlapping DNA segments.
+Comparing your results with someone else from the same testing
+company, using the same testing technology, will not be improved
+significantly by combining test results.  However, comparing your
+results with someone who tested at a different company or whose
+results came from a different testing technology, will likely be
+improved because there will be more SNPs that can be compared.  The
+end result may mean more-relevant matches and better definition of the
+end-points of the overlapping DNA segments.
 
-To use the combined file, it can be read into a spreadsheet, manipulated as text other ways, or uploaded
-to a DNA match service such as gedmatch.
+To use the combined file, it can be read into a spreadsheet,
+manipulated as text other ways, or uploaded to a DNA match service
+such as gedmatch.
 
 **Usage**: refer to comments in the script
 
