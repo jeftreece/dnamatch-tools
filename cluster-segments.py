@@ -43,9 +43,11 @@ chroms = [str(ii) for ii in range(1,nchrom)] + ['X',]   # all chromosomes
 
 #----- most tuning and editing is above this line -----
 
-# Input .csv file must match one of these signatures (column names).
-# Unimportant where the file came from, only that it matches a signature.
-# Add new signatures as needed, but keep column names in chr,start,end order.
+# Input .csv file must match one of these signatures (column names).  It is
+# unimportant where the file came from, only that it matches a signature.  The
+# column order in the input file doesn't matter, but the order does matter in
+# the signature.  Add new signatures as needed, but keep column names in
+# chr,start,end order.
 csv_signatures = {
     '23andMe':   ('Chromosome Number', 'Chromosome Start Point',
                     'Chromosome End Point'),
@@ -54,6 +56,8 @@ csv_signatures = {
     'Gedmatch1': ('Chr', 'Start', 'End'),
     'Gedmatch2': ('Chr', 'Start Position', 'End Position'),
     'Gedmatch3': ('Chr', 'B37 Start', 'B37 End'),
+    'Gedmatch4': ('chr', 'B37Start', 'B37End'),
+    'Gedmatch5': ('chr', 'Start', 'End'),
     }
 
 # Length of each chromosome, from various sources - may not be exactly
@@ -151,7 +155,7 @@ for fname in sys.argv[1:]:
     # print('relevant columns:', csv_cols)
 
     # read all lines of csv file as long as there's a chromosome number
-    segs = [(line[csv_cols[0]], int(line[csv_cols[1]]),
+    segs = [(line[csv_cols[0]].strip(), int(line[csv_cols[1]]),
                  int(line[csv_cols[2]]))
                 for line in d if line[csv_cols[0]]]
 
