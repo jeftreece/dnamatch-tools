@@ -58,6 +58,7 @@ csv_signatures = {
     'Gedmatch3': ('Chr', 'B37 Start', 'B37 End'),
     'Gedmatch4': ('chr', 'B37Start', 'B37End'),
     'Gedmatch5': ('chr', 'Start', 'End'),
+    'Gedmatch6': (' chr', ' start', ' end'),
     }
 
 # Length of each chromosome, from various sources - may not be exactly
