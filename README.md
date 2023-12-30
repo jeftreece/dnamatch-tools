@@ -190,6 +190,78 @@ as..." above needs to be the same name that is in the script.
 Refer to other comments in the script
 
 
+## snpinfo.py:
+
+**User story**: I am looking up a Y chromosome browser and see a SNP
+at a particular location, and I want to know details about the SNP
+to see if it's named and if it appears on the Y tree.
+
+**User story**: I have an autosomal DNA raw data file from a male
+tested at a major testing company, and I want to determine if the
+results contain any Y SNPs that would indicate patrilineal haplogroup.
+
+**User story**: I'm going back and forth between hg19 and hg38,
+looking at various SNPs. I need an easy way to see the respective
+locations of a named SNP in each build.
+
+**User skill required**: you will need to be able to run a python
+program. You will also need to know the basics of SNPs and how they
+are defined by a location and an alternative allele against a
+reference genome. This program is a convenience utility that can make
+some lookups and conversions more concisely and less onerously.
+
+**Usage**: There is a setup step where you will populate a database of
+SNP definitions. This database is created as a sqlite3 database to be
+used by the subsequent runs of the program. The program will do most
+of the work, but you will need to find a .vcf file that contains the
+SNP definitions you want to use. You will need a corresponding file
+for both hg19 and hg38, if you intend to use both versions of the
+reference genome. Locate the file(s), then edit the program to point
+to the correct location, then run `snpinfo.py -B`. Once that is done,
+you can run "snpinfo.py -s <snpname>"; see examples below.
+
+This program is mainly focused on Y-DNA snps, but it should work in
+theory for any SNPs. If you're using it for other than Y, most likely
+some small changes would need to be made to the script, especially to
+match the position with the correct contig range. Also, the SNP names
+come from the .vcf file, so if the .vcf does not have the
+corresponding mnemonic names, you can only look up SNPs by their
+position.
+
+One possible source of a .vcf file is ybrowse.org/gbrowse2/gff/. If
+you have a hg38 file and wish to also look at the SNP information for
+hg19, one solution is use a program such as crossmap.sourceforge.net
+to convert the hg38 .vcf file into a hg19 one; e.g., using a command
+such as this: `CrossMap.py vcf --compress
+~/Download/hg38ToHg19.over.chain.gz ~/Download/snps_hg38.vcf.gz
+~/Download/hg19.fa /tmp/out.vcf.gz`. If you do not wish to have hg19
+definitions, you can omit this, and you may need to make a small
+modification to the program. Note that autosomal results, such as
+those from Ancestry, are probably presented as hg19.
+
+snpinfo.py requires pysam in the python installation; install it
+first, using `pip install pysam` or `pipx install pysam` or `apt
+install python3-pysam` (whatever installation instructions apply to
+your python instance).
+
+You can also use the sqlite database directly by running sqlite3 from
+the command-line.
+
+**Examples**:
+```
+$ ./snpinfo.py -s U106
+hg38  8928037.C.T - M405/S21/U106 (id=735174)
+hg19  8796078.C.T - M405/S21/U106 (id=3199935)
+
+$ ./snpinfo.py -s FT82227 -b hg19
+hg19 22874401.G.T - FT82227 (id=4628934)
+
+$ ./snpinfo.py -s 17036658
+hg38 17036658.C.A - M2986/Z4303 (id=1789931)
+hg38 17036658.C.T - Y159220 (id=1789932)
+```
+
+
 ## ff-matchgraph.py:
 
 **User story**: I have match lists for a number of my relatives in
