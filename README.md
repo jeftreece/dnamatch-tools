@@ -217,7 +217,7 @@ of the work, but you will need to find a .vcf file that contains the
 SNP definitions you want to use. You will need a corresponding file
 for both hg19 and hg38, if you intend to use both versions of the
 reference genome. Locate the file(s), then edit the program to point
-to the correct location, then run `snpinfo.py -B`. Once that is done,
+to the correct location, then run `snpinfo.py -C`. Once that is done,
 you can run "snpinfo.py -s <snpname>"; see examples below.
 
 This program is mainly focused on Y-DNA snps, but it should work in

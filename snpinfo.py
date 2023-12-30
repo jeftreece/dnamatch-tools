@@ -22,7 +22,7 @@ config['verbosity'] = 1
 config['db_file'] = 'variants.db'
 # SNP definitions, hg38, from http://ybrowse.org/gbrowse2/gff/ for example
 config['hg38_snp_file'] = '/home/treece/Download/snps_hg38.vcf.gz'
-config['hg19_snp_file'] = '/home/treece/Download/snps_hg19.vcf'
+config['hg19_snp_file'] = '/home/treece/Download/snps_hg19.vcf.gz'
 
 t0 = time.time()
 
@@ -36,6 +36,7 @@ def trace (level, msg, stream=sys.stderr):
             stream.flush()
 
 
+# command-line arguments
 parser = argparse.ArgumentParser(
     prog='snpinfo.py',
     description='Show information about SNPs by name or position',
@@ -47,9 +48,12 @@ parser.add_argument('-C', '--create', action='store_true',
                         help='create the database of snps from a .vcf file')
 args = parser.parse_args()
 
+
 # create a sqlite database, cursor, and tables
 dbconn = sqlite3.connect(config['db_file'])
 dbcurs = dbconn.cursor()
+
+# database schema - table and index creation when running with -C
 SCHEMA = '''
 /* list of all variants known for this computation */
 drop table if exists variants;
@@ -86,6 +90,7 @@ create table build(
     );
 '''
 
+
 # create the database tables and indexes to hold SNP definitions
 def create_tables():
     dbcurs.executescript(SCHEMA)
@@ -101,9 +106,10 @@ def build_snp_db(build, vcfpath):
         alt = rec.alts[0]
         allvals.add(ref)
         allvals.add(alt)
-    trace(0, 'len(allvals): {}'.format(len(allvals)))
+    trace(10, 'len(allvals): {}'.format(len(allvals)))
     dbconn.commit()
-    dbcurs.executemany('insert or ignore into alleles(allele) values(?)', allvals)
+    dbcurs.executemany('insert or ignore into alleles(allele) values(?)',
+                           allvals)
     variants = []
     for rec in vcftab.fetch():
         pos = rec.pos
@@ -119,13 +125,21 @@ def build_snp_db(build, vcfpath):
         names = rec.id.split(',')
         for nm in names:
             variants.append((build, pos, id1, id2, nm))
-    trace(0, 'len(variants): {}'.format(len(variants)))
-    dbcurs.executemany('insert or ignore into variants(buildid,pos,anc,der) values(?,?,?,?)', list([l[0:4] for l in variants]))
+
+    trace(10, 'len(variants): {}'.format(len(variants)))
+    dbcurs.executemany('''insert or ignore into variants(buildid,pos,anc,der)
+                          values(?,?,?,?)''',
+                    list([l[0:4] for l in variants]))
     dbconn.commit()
+
     snpnames = [(l[4], l[0], l[1], l[2], l[3]) for l in variants if l[4]]
-    dbcurs.executemany('insert or ignore into snpnames(snpname,vid) select ?, v.id from variants v where v.buildid=? and v.pos=? and v.anc=? and v.der=?', snpnames)
+    dbcurs.executemany('''insert or ignore into snpnames(snpname,vid)
+                          select ?, v.id from variants v
+                          where v.buildid=? and v.pos=? and
+                          v.anc=? and v.der=?''',
+                     snpnames)
     dbconn.commit()
-        
+
     return
 
 
